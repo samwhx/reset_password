@@ -118,6 +118,34 @@ app.get(API_URI + '/articles/search', (req, res) => {
   }); 
 });
 
+// GET one article by title
+app.get(API_URI + '/article/search', (req, res) => {
+    let title = req.query.title
+    console.log(title);
+    if (typeof(title === 'undefined')){
+        if (title === '' ){
+            console.log('title is undefined');
+            res.status(500).json({error: "title is undefined"});
+        }
+    }
+    articlesCollection
+        .where('title', '==', title)
+    .get()
+    .then(snapshot => {
+        console.log(">>>snapshot");
+        let articlesArr = [];
+        snapshot.forEach(doc => {
+            console.log(doc.id, '=>', doc.data());
+            articlesArr.push(doc.data());
+        });
+        res.status(200).json(articlesArr);
+      })
+      .catch(err => {
+          console.log('Error getting documents', err);
+          res.status(500).json(err);
+     });
+  });
+
 
 
 
