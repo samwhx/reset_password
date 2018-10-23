@@ -57,40 +57,32 @@ app.get(API_URI + '/authors/search', (req, res) => {
   }); 
 });
 
-// GET one author with associated title
+// GET one author 
 app.get(API_URI + '/author/search', (req, res) => {
     let firstname = req.query.firstname;
     let lastname = req.query.lastname;
-  //let titles = req.query.title
     console.log(firstname, lastname);
     if (typeof(firstname === 'undefined') 
-        && typeof(lastname === 'undefined')) {
-        //&& typeof(titles === "undefined")){
+        && typeof(lastname === 'undefined')){
         if (firstname === ''
-        && lastname === ''
-      //  && titles === ''){
-         ) {
-                console.log('firstname, lastname, topic and article is undefined');
-            res.status(500).json({error: "firstname, lastname, topic & article are undefined"});
+        && lastname === ''){
+        console.log('firstname and lastname are undefined');
+        res.status(500).json({error: "firstname and lastname are undefined"});
         }
     }
     authorsCollection
         .where('firstname', '==', firstname)
         .where('lastname', '==', lastname)
         .limit(10)
-    //articlesCollection
-       // .where('title', '==', titles)
     .get()
     .then(snapshot => {
         console.log(">>>snapshot");
         let authorsArr = [];
-        let articlesArr = [];
         snapshot.forEach(doc => {
             console.log(doc.id, '=>', doc.data());
             authorsArr.push(doc.data());
-            //articlesArr.push(doc.data());
         });
-        res.status(200).json(authorsArr, /*articlesArr*/);
+        res.status(200).json(authorsArr);
       })
       .catch(err => {
           console.log('Error getting documents', err);
