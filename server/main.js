@@ -90,6 +90,34 @@ app.get(API_URI + '/author/search', (req, res) => {
      });
   });
 
+// GET array of articles by topic
+app.get(API_URI + '/articles/search', (req, res) => {
+    let topic = req.query.topic
+    console.log(topic);
+    if (typeof(topic === 'undefined')){
+        if (topic === '') {
+            console.log('topic is undefined');
+            res.status(500).json({error: "topic is undefined"});
+        }
+    }
+    topicsCollection
+        .where('topic', '==', topic)
+        .limit(5)
+    articlesCollection
+    .get()
+    .then(snapshot => {
+        let articlesArr = [];
+        snapshot.forEach(doc => {
+            console.log(doc.id, '=>', doc.data());
+            articlesArr.push(doc.data());       
+    });
+    res.status(200).json(articlesArr);
+   })
+   .catch(err => {
+     console.log('Error getting documents', err);
+  }); 
+});
+
 
 
 
