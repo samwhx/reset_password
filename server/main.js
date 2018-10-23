@@ -146,7 +146,16 @@ app.get(API_URI + '/article/search', (req, res) => {
      });
   });
 
-
+///////////////// CREATE //////////////////////////////
+  // Add one author
+  app.post(API_URI + '/authors', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res) => { 
+    let author = { ...req.body };
+    console.log(".....author" + JSON.stringify(author));
+    authorsCollection
+        .add(author)
+        .then(result => res.status(200).json("Author name added"))
+        .catch(error => res.status(500).json(error));
+})
 
 
 
