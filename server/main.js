@@ -158,7 +158,7 @@ app.get(API_URI + '/article/search', (req, res) => {
 })
 
 // Add one article 
-app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
+app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), (req, res) => {
     let article = {... req.body };
     console.log(".....articles" + JSON.stringify(article));
     articlesCollection
@@ -166,6 +166,22 @@ app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyPa
         .then(result => res.status(200).json("Article added"))
         .catch(error => res.status(500).json(error));
     })
+
+//////////////// UPDATE ////////////
+// Edit article
+app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), (req, res) => {
+    let idValue = req.params.id;
+    console.log(idValue);
+    console.log(JSON.stringify(req.body));
+    let article = {... req.body};
+    articlesCollection.doc(idValue).update(
+        article,
+        { merge: true });
+        console.log(article)
+    res.status(200).json(article);
+});
+
+
 
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.APP_PORT) || 3000;
 app.listen(PORT, () => {
