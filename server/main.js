@@ -157,7 +157,15 @@ app.get(API_URI + '/article/search', (req, res) => {
         .catch(error => res.status(500).json(error));
 })
 
-
+// Add one article 
+app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
+    let article = {... req.body };
+    console.log(".....articles" + JSON.stringify(article));
+    articlesCollection
+        .add(article)
+        .then(result => res.status(200).json("Article added"))
+        .catch(error => res.status(500).json(error));
+    })
 
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.APP_PORT) || 3000;
 app.listen(PORT, () => {
