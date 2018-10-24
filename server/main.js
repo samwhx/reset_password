@@ -40,7 +40,7 @@ const googleMulter = multer({
 */
 /////////////////////////// READ ///////////////////////////////////////////
 // GET array of authors
-app.get(API_URI + '/authors/search', (req, res) => {
+app.get(API_URI + '/authors', (req, res) => {
     authorsCollection
     .get()
     // console.log(authorsCollection)
@@ -109,9 +109,24 @@ app.get(API_URI + '/articles/search', (req, res) => {
         let articlesArr = [];
         snapshot.forEach(doc => {
             console.log(doc.id, '=>', doc.data());
-            articlesArr.push(doc.data());       
-    });
-    res.status(200).json(articlesArr);
+            const authorId = doc.data().author_id;
+            let articleData = doc.data();
+
+            console.log('Author ID is:', authorId);
+
+            if (typeof authorId !== 'undefined') {
+                const authorRef = authorsCollection.doc(authorId);
+                let authorPromise = authorRef.get().then(authorSnapshot => {
+                    console.log('Found an author: ', authorSnapshot.data())
+                    articleData.author = authorSnapshot.data()
+                });
+                Promise.all(authorPromise).then(result => {
+                    articlesArr.push(articleData);
+                })
+            }
+            articlesArr.push(articleData);
+        });
+        res.status(200).json(articlesArr);
    })
    .catch(err => {
      console.log('Error getting documents', err);
@@ -168,6 +183,19 @@ app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), (req, 
     })
 
 //////////////// UPDATE ////////////
+// Edit author
+app.put(API_URI + '/author/:id', bodyParser.urlencoded({ extended: true }), (req, res) => {
+    let idValue = req.params.id;
+    console.log(idValue);
+    console.log(JSON.stringify(req.body));
+    let author = {... req.body};
+    authorsCollection.doc(idValue).update(
+        author,
+        { merge: true });
+        console.log(author) 
+    res.status(200).json(author);
+});
+
 // Edit article
 app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), (req, res) => {
     let idValue = req.params.id;
