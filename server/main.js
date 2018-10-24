@@ -106,27 +106,25 @@ app.get(API_URI + '/articles/search', (req, res) => {
     articlesCollection
     .get()
     .then(snapshot => {
-        let articlesArr = [];
-        snapshot.forEach(doc => {
-            console.log(doc.id, '=>', doc.data());
+        // No need to push to an array because we're using map here to create a new array
+        let snapshotPromises = snapshot.docs.map(doc => {
             const authorId = doc.data().author_id;
             let articleData = doc.data();
 
-            console.log('Author ID is:', authorId);
-
             if (typeof authorId !== 'undefined') {
                 const authorRef = authorsCollection.doc(authorId);
-                let authorPromise = authorRef.get().then(authorSnapshot => {
-                    console.log('Found an author: ', authorSnapshot.data())
-                    articleData.author = authorSnapshot.data()
+                return authorRef.get().then(authorSnapshot => {
+                    articleData.author = authorSnapshot.data();
+                    return articleData;
                 });
-                Promise.all(authorPromise).then(result => {
-                    articlesArr.push(articleData);
-                })
+            } else {
+                return articleData;
             }
-            articlesArr.push(articleData);
         });
-        res.status(200).json(articlesArr);
+
+        Promise.all(snapshotPromises).then(results => {
+            res.status(200).json(results);
+        });
    })
    .catch(err => {
      console.log('Error getting documents', err);
