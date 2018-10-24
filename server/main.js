@@ -57,11 +57,12 @@ app.get(API_URI + '/authors', (req, res) => {
   }); 
 });
 
-// GET one author 
-app.get(API_URI + '/author/search', (req, res) => {
+// Search by firstname & lastname
+app.get(API_URI + '/author', (req, res) => {
     let firstname = req.query.firstname;
     let lastname = req.query.lastname;
     console.log(firstname, lastname);
+
     if (typeof(firstname === 'undefined') 
         && typeof(lastname === 'undefined')){
         if (firstname === ''
@@ -70,28 +71,28 @@ app.get(API_URI + '/author/search', (req, res) => {
         res.status(500).json({error: "firstname and lastname are undefined"});
         }
     }
+
     authorsCollection
         .where('firstname', '==', firstname)
         .where('lastname', '==', lastname)
-        .limit(10)
     .get()
-    .then(snapshot => {
-        console.log(">>>snapshot");
-        let authorsArr = [];
-        snapshot.forEach(doc => {
-            console.log(doc.id, '=>', doc.data());
-            authorsArr.push(doc.data());
+    .then((result) => {
+        let authorData = []
+    
+        authorData = result.docs.map(value => {
+            return value.data();
         });
-        res.status(200).json(authorsArr);
-      })
-      .catch(err => {
-          console.log('Error getting documents', err);
-          res.status(500).json(err);
-     });
-  });
+
+        res.status(200).json(authorData)
+     })
+     .catch(err => {
+        console.log('Error getting documents', err);
+        res.status(500).json(err);
+    })
+});
 
 // GET array of articles by topic
-app.get(API_URI + '/articles/search', (req, res) => {
+app.get(API_URI + '/articles', (req, res) => {
     let topic = req.query.topic
     console.log(topic);
     if (typeof(topic === 'undefined')){
@@ -132,7 +133,7 @@ app.get(API_URI + '/articles/search', (req, res) => {
 });
 
 // GET one article by title
-app.get(API_URI + '/article/search', (req, res) => {
+app.get(API_URI + '/article', (req, res) => {
     let title = req.query.title
     console.log(title);
     if (typeof(title === 'undefined')){
@@ -145,13 +146,10 @@ app.get(API_URI + '/article/search', (req, res) => {
         .where('title', '==', title)
     .get()
     .then(snapshot => {
-        console.log(">>>snapshot");
-        let articlesArr = [];
-        snapshot.forEach(doc => {
-            console.log(doc.id, '=>', doc.data());
-            articlesArr.push(doc.data());
+        let articlesData = snapshot.docs.map(doc => {
+            return doc.data();
         });
-        res.status(200).json(articlesArr);
+        res.status(200).json(articlesData);
       })
       .catch(err => {
           console.log('Error getting documents', err);
