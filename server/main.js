@@ -1,8 +1,9 @@
 const express = require('express'),
       path = require('path'),
       admin = require('firebase-admin'),
-      googleStorage = require('@google-cloud/storage'),
+      { Storage } = require('@google-cloud/storage'),
       bodyParser = require('body-parser'),
+      multer = require("multer"),
       cors = require('cors');
 
 const app = express();
@@ -20,13 +21,15 @@ admin.initializeApp({
 });
 
 var db = admin.firestore();
+const settings = {/* your settings... */ timestampsInSnapshots: true};
+db.settings(settings);
 
 var authorsCollection = db.collection('authors');
 var topicsCollection = db.collection('topics');
 var articlesCollection = db.collection('articles');
 
 //export Google_Application_Credentials
-const gStorage = googleStorage({
+const gStorage = new Storage({
       projectId: "mini-bbb5b"
 });
 
@@ -46,7 +49,7 @@ var unSubscribe = subscribeArticles();
 function subscribeArticles() {
     return articlesCollection.onSnapshot((snapshot) => {
         if(!snapshot.empty) {
-            console.log(snapshot);
+            //console.log(snapshot);
             snapshot.docChanges.forEach((data) => {
                 console.log(`==>${ Date() } ${ updateCounter }` + data.type);
                 if(data.type === 'modified') {
@@ -226,14 +229,9 @@ app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), bod
     res.status(200).json(article);
 });
 
-///////////////// UPLOAD ///////////////////
-function debugReq(req, res, next) {
-    console.log(req.file);
-    next();
-}
 
 //Upload single image
-app.post(API_URI + '/upload', debugReq, bp.urlencoded({ extended: true }), bp.json({ limit: "20MB" }),
+app.post(API_URI + '/upload', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "20MB" }),
     googleMulter.single('img'), (req, res) => {
         console.log("....uploading: ");
         if(req.file.length) {
