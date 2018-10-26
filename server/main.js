@@ -8,7 +8,7 @@ const express = require('express'),
 const app = express();
 
 const API_URI = "/api";
-
+app.use(cors());
 // Initialize Firebase
 const credFile = process.env.Svc_Cred_File || "./f.json";
 
