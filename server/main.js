@@ -10,6 +10,8 @@ const app = express();
 
 const API_URI = "/api";
 app.use(cors());
+
+//set GOOGLE_APPLICATION_CREDENTIALS=/Users/phangty/Projects/paf-day26/onfire.json
 // Initialize Firebase
 const credFile = process.env.Svc_Cred_File || "./f.json";
 
@@ -72,12 +74,17 @@ app.get(API_URI + '/authors', (req, res) => {
         let authorsArr = [];
         snapshot.forEach(doc => {
             console.log(doc.id, '=>', doc.data());
-            authorsArr.push(doc.data());       
+            var returnResult = {
+                id: doc.id,
+                result: doc.data()
+            }
+            authorsArr.push(returnResult);       
     });
     res.status(200).json(authorsArr);
    })
    .catch(err => {
      console.log('Error getting documents', err);
+     res.status(500).json(err);
   }); 
 });
 
@@ -108,6 +115,32 @@ app.get(API_URI + '/author', (req, res) => {
         });
 
         res.status(200).json(authorData)
+     })
+     .catch(err => {
+        console.log('Error getting documents', err);
+        res.status(500).json(err);
+    })
+});
+
+
+/**
+ * get author by id.
+ */
+app.get(API_URI + '/authors/:id', (req, res) => {
+    let idValue = req.params.id;
+    
+    authorsCollection.
+        doc(idValue)
+    .get()
+    .then((result) => {
+        console.log(result.data());
+        var returnResult = {
+            id: idValue,
+            firstname : result.data().firstname,
+            lastname: result.data().lastname,
+            profile: result.data().profile
+        }
+        res.status(200).json(returnResult)
      })
      .catch(err => {
         console.log('Error getting documents', err);
@@ -204,11 +237,11 @@ app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyPa
 
 //////////////// UPDATE ////////////
 // Edit author
-app.put(API_URI + '/author/:id', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
-    let idValue = req.params.id;
-    console.log(idValue);
+app.put(API_URI + '/authors', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
     console.log(JSON.stringify(req.body));
     let author = {... req.body};
+    let idValue = author.id
+    console.log(idValue);
     authorsCollection.doc(idValue).update(
         author,
         { merge: true });

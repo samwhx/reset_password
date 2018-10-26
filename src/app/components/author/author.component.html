@@ -1,0 +1,23 @@
+<br>
+<mat-toolbar class="main-toolbar">
+  <mat-toolbar-row>
+      <span>Authors</span>
+      <span class="example-spacer"></span>
+      <button mat-raised-button color="accent" (click)="onAdd()">Add</button>
+  </mat-toolbar-row>
+</mat-toolbar>
+<div class="separator"></div>
+<mat-grid-list  *ngFor="let author of authors" cols="4">
+    <mat-grid-tile colspan="1" rowspan="1">
+      <div class="editBtn"><img src="{{author.result.thumbnail_url}}"/>
+      <button mat-raised-button color="primary" (click)="onEdit(author.id)" >Edit</button>
+      <button mat-raised-button color="warn" (click)="onDelete()">Delete</button></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan="2" rowspan="1">
+        <div>
+            <h2>{{author.result.firstname}}  {{author.result.lastname}}</h2>
+            <p>{{author.result.profile}}</p>
+        </div>
+    </mat-grid-tile>
+</mat-grid-list>
+<mat-divider></mat-divider>

@@ -1,12 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { ModuleWithProviders, NgModule } from '@angular/core';
-
+import { NgModule } from '@angular/core';
 
 // Components & Modules
 import { AppComponent } from './app.component';
-import { AuthorsModule } from './authors/authors.module';
-//import { HomeModule } from './home/home.module';
-//import { ArticlesModule } from './articles/articles.module';
 
 
 // Reactive Forms
@@ -19,15 +15,30 @@ import { MaterialModule } from './shared/layout/material.module';
 
 // Services
 import { HttpClientModule } from '@angular/common/http';
-import { HttpModule } from '@angular/http';
 import { SharedModule } from './shared/shared.module';
-import { RouterModule } from '@angular/router';
-
-const rootRouting: ModuleWithProviders = RouterModule.forRoot([]);
+import { RoutingModule } from './app.routing';
+import { HeaderComponent } from './shared/layout/header/header.component';
+import { AuthorComponent } from './components/author/author.component';
+import { AddAuthorComponent } from './components/author/add-author/add-author.component';
+import { EditAuthorComponent } from './components/author/edit-author/edit-author.component';
+import { CategoryComponent } from './components/category/category.component';
+import { ArticleComponent } from './components/article/article.component';
+import { PublishComponent } from './components/article/publish/publish.component';
+import { AddCategoryComponent } from './components/category/add-category/add-category.component';
+import { EditCategoryComponent } from './components/category/edit-category/edit-category.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    HeaderComponent,
+    AuthorComponent,
+    AddAuthorComponent,
+    EditAuthorComponent,
+    CategoryComponent,
+    ArticleComponent,
+    PublishComponent,
+    AddCategoryComponent,
+    EditCategoryComponent
   ],
 
   imports: [
@@ -37,13 +48,8 @@ const rootRouting: ModuleWithProviders = RouterModule.forRoot([]);
     ReactiveFormsModule,
     MaterialModule,
     HttpClientModule,
-    HttpModule,
-    RouterModule,
-    AuthorsModule,
-    //HomeModule,
-    //ArticlesModule,
     SharedModule,
-    rootRouting
+    RoutingModule,
     // ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
 

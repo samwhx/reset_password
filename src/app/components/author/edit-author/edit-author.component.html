@@ -1,0 +1,27 @@
+<mat-toolbar class="main-toolbar">
+    <mat-toolbar-row>
+        <span>Edit Author</span>
+        <span class="example-spacer"></span>
+        <button mat-raised-button color="accent" (click)="onSubmit()">Save</button>
+    </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-grid-list cols="3">
+    <mat-grid-tile colspan="2" rowspan="1">
+        <div>
+            <form class="example-form" [formGroup]="editAuthorForm">
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="First Name" formControlName="firstname">
+                </mat-form-field>
+
+                <mat-form-field class="example-full-width">
+                    <input matInput placeholder="Last Name" formControlName="lastname">
+                  </mat-form-field>
+              
+                <mat-form-field class="example-full-width">
+                  <textarea matInput rows="15" cols="50" placeholder="Author's Profile" formControlName="profile"></textarea>
+                </mat-form-field>
+              </form>              
+        </div>
+    </mat-grid-tile>
+</mat-grid-list>

@@ -3,7 +3,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Author} from '../models/authors/author';
+import { Author} from '../models/author';
 import { MatSnackBar } from '@angular/material';
 
 @Injectable({
@@ -18,26 +18,33 @@ export class AuthorsService {
     private http: HttpClient,
     public snackBar: MatSnackBar) { }
 
+  // Get an array of authors
+  public getAuthors(): Observable<Author[]> {
+    return this.http.get<Author[]>(this.authorRootApiUrl)
+      .pipe(catchError(this.handleError<Author[]>('getAuthors')));
+  }
 
+  public getAuthor(idValue): Observable<Author> {
+    return this.http.get<Author>(`${this.authorRootApiUrl}/${idValue}`)
+      .pipe(catchError(this.handleError<Author>('getAuthor')));
+  }
 
-// Get an array of authors
-public getAuthors(): Observable<Author> {
-  return this.http.get<Author>(this.authorRootApiUrl)
-  .pipe(catchError(this.handleError<Author>('getAuthors')));
-}
+  editAuthor(details): Observable<Author> {
+    console.log(details);
+    return this.http.put<Author>(this.authorRootApiUrl, details)
+    .pipe(catchError(this.handleError<Author>('editAuthor')));
+  }
 
-editAuthor(details): Observable<any> {
-  return this.http.put(this.authorRootApiUrl, details)
-  .pipe(catchError(this.handleError<Author>('editAuthor')));
-}
+  addAuthor(author): Observable<any> {
+    return this.http.post(this.authorRootApiUrl, author)
+    .pipe(catchError(this.handleError<Author>('addAuthor')));
+  }
 
-
-
-private handleError<T>(operation = 'operation', result?: T){
-  return (error: any): Observable<T> => {
-    console.log(JSON.stringify(error.error));
-    this.showErrorMessage(JSON.stringify(error.error));
-    return throwError(error || 'generic backend error');
+  private handleError<T>(operation = 'operation', result?: T){
+    return (error: any): Observable<T> => {
+      console.log(JSON.stringify(error.error));
+      this.showErrorMessage(JSON.stringify(error.error));
+      return throwError(error || 'generic backend error');
   }
 }
 
