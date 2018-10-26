@@ -342,6 +342,15 @@ app.delete(API_URI + '/delete/articles/:id', (req, res) => {
     });
 });
 
+app.delete(API_URI + '/authors', (req, res) => {
+    let idValue = req.query.id;
+    authorsCollection.doc(idValue).delete().then((result) => {
+        res.status(200).json(result);
+    }).catch((error) => {
+        res.status(500).json(error);
+    });
+});
+
 
 ///////////// UNSUBSCRIBE & SUBSCRIBE TO LISTENING FOR CHANGES ///////////
 app.get(API_URI + '/unsubscribe-article', (req, res) => {

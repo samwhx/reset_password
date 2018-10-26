@@ -40,6 +40,12 @@ export class AuthorsService {
     .pipe(catchError(this.handleError<Author>('addAuthor')));
   }
 
+  deleteAuthor(idValue): Observable<Author> {
+    console.log(idValue);
+    return this.http.delete<Author>(`${this.authorRootApiUrl}?id=${idValue}`)
+    .pipe(catchError(this.handleError<Author>('editAuthor')));
+  }
+
   private handleError<T>(operation = 'operation', result?: T){
     return (error: any): Observable<T> => {
       console.log(JSON.stringify(error.error));

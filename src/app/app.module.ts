@@ -26,6 +26,7 @@ import { ArticleComponent } from './components/article/article.component';
 import { PublishComponent } from './components/article/publish/publish.component';
 import { AddCategoryComponent } from './components/category/add-category/add-category.component';
 import { EditCategoryComponent } from './components/category/edit-category/edit-category.component';
+import  { DialogOverviewExampleDialog } from './components/author/author.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { EditCategoryComponent } from './components/category/edit-category/edit-
     ArticleComponent,
     PublishComponent,
     AddCategoryComponent,
-    EditCategoryComponent
+    EditCategoryComponent,
+    DialogOverviewExampleDialog
   ],
 
   imports: [
@@ -54,7 +56,7 @@ import { EditCategoryComponent } from './components/category/edit-category/edit-
   ],
 
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, DialogOverviewExampleDialog]
 })
 export class AppModule { }
 

@@ -7,11 +7,11 @@
   </mat-toolbar-row>
 </mat-toolbar>
 <div class="separator"></div>
-<mat-grid-list  *ngFor="let author of authors" cols="4">
+<mat-grid-list  *ngFor="let author of authors || async" cols="4">
     <mat-grid-tile colspan="1" rowspan="1">
       <div class="editBtn"><img src="{{author.result.thumbnail_url}}"/>
       <button mat-raised-button color="primary" (click)="onEdit(author.id)" >Edit</button>
-      <button mat-raised-button color="warn" (click)="onDelete()">Delete</button></div>
+      <button mat-raised-button color="warn" (click)="onDelete(author.id, author.result.firstname, author.result.lastname)">Delete</button></div>
     </mat-grid-tile>
     <mat-grid-tile colspan="2" rowspan="1">
         <div>
