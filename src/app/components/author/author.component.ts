@@ -41,7 +41,7 @@ export class AuthorComponent implements OnInit {
 
   
   onDelete(idValue, firstname, lastname) {
-    const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
+    const dialogRef = this.dialog.open(DeleteAuthorDialog, {
       width: '250px',
       data: {id: idValue, firstname: firstname, lastname: lastname}
     });
@@ -53,9 +53,13 @@ export class AuthorComponent implements OnInit {
       {
         this.authorSvc.deleteAuthor(idValue).subscribe((result)=>{
           console.log(result);
-          this.authorSvc.getAuthors().subscribe((result)=>{
-            this.authors = result;
-          });
+          for(let x = 0 ; x < this.authors.length; x++){
+            if(this.authors[x].id === idValue){
+              this.authors.splice(x, 1);
+              break;
+            }
+          }
+         
           let snackBarRef = this.snackSvc.open("Author Deleted", 'Done', {
             duration: 3000
           });
@@ -68,13 +72,13 @@ export class AuthorComponent implements OnInit {
 }
 
 @Component({
-  selector: 'dialog-overview-example-dialog',
+  selector: 'delete-author-dialog',
   templateUrl: 'author-delete-dialog.html',
 })
-export class DialogOverviewExampleDialog {
+export class DeleteAuthorDialog {
 
   constructor(
-    public dialogRef: MatDialogRef<DialogOverviewExampleDialog>,
+    public dialogRef: MatDialogRef<DeleteAuthorDialog>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData) {}
 
   onNoClick(): void {

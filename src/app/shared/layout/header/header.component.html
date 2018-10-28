@@ -1,15 +1,27 @@
 <mat-toolbar color="primary" class="main-toolbar">
   <mat-toolbar-row>
-      <span><a routerLink="/Article" class="router-link">Meneee </a></span>
+      <span><a routerLink="/Article" class="router-link">Ngx Blog </a></span>
       <span class="example-spacer"></span>
-      <button mat-icon-button (click)="navigateToAuthor()">
-          <mat-icon>book</mat-icon>
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>more_vert</mat-icon>
       </button>
-      <button mat-icon-button (click)="navigateToCategory()">
-          <mat-icon>category</mat-icon>
-      </button>
-      <button mat-icon-button (click)="navigateToPublish()">
-          <mat-icon>publish</mat-icon>
-      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="navigateToAuthor()">
+            <mat-icon>book</mat-icon>
+            <span>Authors</span>
+        </button>
+        <button mat-menu-item (click)="navigateToCategory()">
+            <mat-icon>category</mat-icon>
+            <span>Categories</span>
+        </button>
+        <button mat-menu-item (click)="navigateToPublish()">
+            <mat-icon>publish</mat-icon>
+            <span>Publish Article</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+        </button>
+      </mat-menu>
   </mat-toolbar-row>
 </mat-toolbar>

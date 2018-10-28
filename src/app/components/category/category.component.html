@@ -1,3 +1,30 @@
-<p>
-  category works!
-</p>
+<br>
+<mat-toolbar class="main-toolbar">
+  <mat-toolbar-row>
+      <span>Categories</span>
+      <span class="example-spacer"></span>
+      <button mat-raised-button color="accent" (click)="onNew()">New</button>
+  </mat-toolbar-row>
+</mat-toolbar>
+<div class="separator"></div>
+<br>
+<mat-grid-list cols="3" rowHeight="2:1">
+    <mat-grid-tile>
+      <app-add-category *ngIf="isNew" (categoryEvt)="onAddCategory($event)"></app-add-category>
+      <app-edit-category *ngIf="!isNew" (categoryEditEvt)="onEditCategory($event)"></app-edit-category>
+    </mat-grid-tile>
+    <mat-grid-tile colspan="1" rowspan="2">
+        <perfect-scrollbar style="max-width: 600px; max-height: 400px;" [config]="config">
+            <div class="container">
+                <ul *ngFor="let category of categories; let i = index">
+                  <li><button mat-flat-button (click)="doEdit(i, category.result.name)">{{category.result.name}}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+        </perfect-scrollbar>
+    </mat-grid-tile>
+   
+  </mat-grid-list>
+
+  

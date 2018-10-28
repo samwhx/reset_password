@@ -11,3 +11,16 @@
 .example-full-width {
     width: 100%;
 }
+
+.mat-grid-tile .mat-figure {
+    height: 50% !important;
+}
+.my-grid-tile {
+    height: 50% !important;
+}
+
+.example-margin {
+    margin: 0 40px;
+    left: 50%;
+    margin-left: -4em;
+}

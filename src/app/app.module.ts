@@ -13,9 +13,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './shared/layout/material.module';
 
 
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {ScrollingModule} from '@angular/cdk/scrolling';
+import {CdkTableModule} from '@angular/cdk/table';
+import {CdkTreeModule} from '@angular/cdk/tree';
 // Services
 import { HttpClientModule } from '@angular/common/http';
 import { SharedModule } from './shared/shared.module';
+import { MatFileUploadModule } from './shared/matfileUpload/matFileUpload.module';
+
 import { RoutingModule } from './app.routing';
 import { HeaderComponent } from './shared/layout/header/header.component';
 import { AuthorComponent } from './components/author/author.component';
@@ -26,7 +32,14 @@ import { ArticleComponent } from './components/article/article.component';
 import { PublishComponent } from './components/article/publish/publish.component';
 import { AddCategoryComponent } from './components/category/add-category/add-category.component';
 import { EditCategoryComponent } from './components/category/edit-category/edit-category.component';
-import  { DialogOverviewExampleDialog } from './components/author/author.component';
+import  { DeleteAuthorDialog } from './components/author/author.component';
+import { PerfectScrollbarModule } from 'ngx-perfect-scrollbar';
+import { PERFECT_SCROLLBAR_CONFIG } from 'ngx-perfect-scrollbar';
+import { PerfectScrollbarConfigInterface } from 'ngx-perfect-scrollbar';
+
+const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
+  suppressScrollX: true
+};
 
 @NgModule({
   declarations: [
@@ -40,7 +53,7 @@ import  { DialogOverviewExampleDialog } from './components/author/author.compone
     PublishComponent,
     AddCategoryComponent,
     EditCategoryComponent,
-    DialogOverviewExampleDialog
+    DeleteAuthorDialog
   ],
 
   imports: [
@@ -52,11 +65,25 @@ import  { DialogOverviewExampleDialog } from './components/author/author.compone
     HttpClientModule,
     SharedModule,
     RoutingModule,
+    MatFileUploadModule,
+    DragDropModule,
+    ScrollingModule,
+    CdkTableModule,
+    CdkTreeModule,
+    PerfectScrollbarModule
     // ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
 
-  providers: [],
-  bootstrap: [AppComponent, DialogOverviewExampleDialog]
+  providers: [
+    {
+      provide: PERFECT_SCROLLBAR_CONFIG,
+      useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
+    }
+  ],
+  entryComponents: [DeleteAuthorDialog],
+  bootstrap: [AppComponent]
+  
+
 })
 export class AppModule { }
 

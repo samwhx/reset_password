@@ -18,6 +18,7 @@ export class EditAuthorComponent implements OnInit {
   editAuthorForm = new FormGroup({
     firstname: new FormControl('', Validators.required),
     lastname: new FormControl('', Validators.required),
+    email: new FormControl('', [Validators.required, Validators.email]),
     profile: new FormControl('', Validators.required)
   });
 
@@ -34,6 +35,7 @@ export class EditAuthorComponent implements OnInit {
         id: result.id,
         firstname: result.firstname,
         lastname: result.lastname,
+        email: result.email,
         profile: result.profile
       });
       this.author = result;
@@ -48,6 +50,7 @@ export class EditAuthorComponent implements OnInit {
       id: this.author.id,
       firstname: this.editAuthorForm.get("firstname").value,
       lastname: this.editAuthorForm.get("lastname").value,
+      email: this.editAuthorForm.get("email").value,
       profile: this.editAuthorForm.get("profile").value
     }
     this.authorSvc.editAuthor(authorObj).subscribe((result)=>{

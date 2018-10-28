@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Author} from '../models/author';
@@ -10,7 +10,7 @@ import { MatSnackBar } from '@angular/material';
   providedIn: 'root'
 })
 
-export class AuthorsService {
+export class AuthorsService{
 
   private authorRootApiUrl = `${environment.api_url}/api/authors`;
 
@@ -51,8 +51,8 @@ export class AuthorsService {
       console.log(JSON.stringify(error.error));
       this.showErrorMessage(JSON.stringify(error.error));
       return throwError(error || 'generic backend error');
+    }
   }
-}
 
   showErrorMessage(msg) {
     let snackBarRef = this.snackBar.open(msg, 'Undo');

@@ -21,4 +21,8 @@ export class HeaderComponent implements OnInit {
     this.router.navigate(['/Category']);
   }
 
+  navigateToPublish(){
+    this.router.navigate(['/Publish']);
+  }
+
 }

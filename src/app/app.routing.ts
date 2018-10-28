@@ -6,7 +6,13 @@ import { AuthorComponent } from './components/author/author.component';
 import { AddAuthorComponent } from './components/author/add-author/add-author.component';
 import { EditAuthorComponent } from './components/author/edit-author/edit-author.component';
 import { CategoryComponent } from './components/category/category.component';
+import { ArticleComponent } from './components/article/article.component';
+import { PublishComponent } from './components/article/publish/publish.component';
 const appRoutes = [
+    {
+        path: 'Article',
+        component: ArticleComponent,
+    },
     {
         path: 'Author',
         component: AuthorComponent,
@@ -24,12 +30,17 @@ const appRoutes = [
         component: CategoryComponent,
     },
     {
-        path: 'Category/Add',
-        component: AddAuthorComponent, 
+        path: 'Publish',
+        component: PublishComponent,
     },
     {
-        path: 'Category/Edit/:id',
-        component: EditAuthorComponent, 
+        path: '', 
+        redirectTo: '/Article', 
+        pathMatch: 'full' 
+    },
+    {
+        path: '**', 
+        component: ArticleComponent,
     }
 ]
 

@@ -4,4 +4,5 @@ export interface Author {
     lastname: string;
     thumbnail_url?: string;
     profile: string;
+    email: string;
 }

@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express'),
       path = require('path'),
       admin = require('firebase-admin'),
       { Storage } = require('@google-cloud/storage'),
       bodyParser = require('body-parser'),
+      uuidv4 = require('uuid/v4'),
       multer = require("multer"),
       cors = require('cors');
 
@@ -13,13 +15,13 @@ app.use(cors());
 
 //set GOOGLE_APPLICATION_CREDENTIALS=/Users/phangty/Projects/paf-day26/onfire.json
 // Initialize Firebase
-const credFile = process.env.Svc_Cred_File || "./f.json";
+const credFile = process.env.Svc_Cred_File || "./ngx-blog.json";
 
 var serviceAccount = require(credFile);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://mini-bbb5b.firebaseio.com"
+  databaseURL: process.env.FIREBASE_DB_URL
 });
 
 var db = admin.firestore();
@@ -27,15 +29,16 @@ const settings = {/* your settings... */ timestampsInSnapshots: true};
 db.settings(settings);
 
 var authorsCollection = db.collection('authors');
-var topicsCollection = db.collection('topics');
 var articlesCollection = db.collection('articles');
+var categoriesCollection = db.collection('categories');
+
 
 //export Google_Application_Credentials
 const gStorage = new Storage({
-      projectId: "mini-bbb5b"
+      projectId: process.env.FIREBASE_PROJECT_ID
 });
 
-const bucket = gStorage.bucket("mini-bbb5b.appspot.com");
+const bucket = gStorage.bucket(process.env.FIREBASE_STORAGE_BUCKET);
 const googleMulter = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -43,26 +46,6 @@ const googleMulter = multer({
     }
 })
 
-var addCounter = 0;
-var updateCounter = 0;
-
-var unSubscribe = subscribeArticles();
-
-function subscribeArticles() {
-    return articlesCollection.onSnapshot((snapshot) => {
-        if(!snapshot.empty) {
-            //console.log(snapshot);
-            snapshot.docChanges.forEach((data) => {
-                console.log(`==>${ Date() } ${ updateCounter }` + data.type);
-                if(data.type === 'modified') {
-                    updateCounter = updateCounter + 1
-                }else if(data.type === 'added') {
-                    addCounter = addCounter + 1;
-                }
-            })
-        }
-    });
-}
 
 /////////////////////////// READ ///////////////////////////////////////////
 // GET array of authors
@@ -138,6 +121,7 @@ app.get(API_URI + '/authors/:id', (req, res) => {
             id: idValue,
             firstname : result.data().firstname,
             lastname: result.data().lastname,
+            email: result.data().email,
             profile: result.data().profile
         }
         res.status(200).json(returnResult)
@@ -150,29 +134,18 @@ app.get(API_URI + '/authors/:id', (req, res) => {
 
 // GET array of articles by topic
 app.get(API_URI + '/articles', (req, res) => {
-    let topic = req.query.topic
-    console.log(topic);
-    if (typeof(topic === 'undefined')){
-        if (topic === '') {
-            console.log('topic is undefined');
-            res.status(500).json({error: "topic is undefined"});
-        }
-    }
-    topicsCollection
-        .where('topic', '==', topic)
-        .limit(5)
     articlesCollection
     .get()
     .then(snapshot => {
         // No need to push to an array because we're using map here to create a new array
         let snapshotPromises = snapshot.docs.map(doc => {
-            const authorId = doc.data().author_id;
+            const authorId = doc.data().author;
             let articleData = doc.data();
 
             if (typeof authorId !== 'undefined') {
                 const authorRef = authorsCollection.doc(authorId);
                 return authorRef.get().then(authorSnapshot => {
-                    articleData.author = authorSnapshot.data();
+                    articleData.authorName = authorSnapshot.data().firstname + ' ' + authorSnapshot.data().lastname;
                     return articleData;
                 });
             } else {
@@ -181,11 +154,13 @@ app.get(API_URI + '/articles', (req, res) => {
         });
 
         Promise.all(snapshotPromises).then(results => {
+            console.log(results);
             res.status(200).json(results);
         });
    })
    .catch(err => {
-     console.log('Error getting documents', err);
+        console.log('Error getting documents', err);
+        res.status(500).json(err);
   }); 
 });
 
@@ -233,7 +208,50 @@ app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyPa
         .add(article)
         .then(result => res.status(200).json("Article added"))
         .catch(error => res.status(500).json(error));
-    })
+});
+
+app.post(API_URI + '/categories', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
+    let category = {... req.body };
+    console.log(".....categories" + JSON.stringify(category));
+    categoriesCollection
+        .add(category)
+        .then(result => res.status(200).json(result))
+        .catch(error => res.status(500).json(error));
+});
+
+app.get(API_URI + '/categories', (req, res) => {
+    categoriesCollection
+    .get()
+    .then(snapshot => {
+        let categoriesArr = [];
+        snapshot.forEach(doc => {
+            console.log(doc.id, '=>', doc.data());
+            var returnResult = {
+                id: doc.id,
+                result: doc.data()
+            }
+            categoriesArr.push(returnResult);       
+    });
+    res.status(200).json(categoriesArr);
+   })
+   .catch(err => {
+     console.log('Error getting documents', err);
+     res.status(500).json(err);
+  }); 
+});
+
+
+app.put(API_URI + '/categories', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
+    console.log(JSON.stringify(req.body));
+    let category = {... req.body};
+    let idValue = category.id
+    console.log(idValue);
+    categoriesCollection.doc(idValue).update(
+        category,
+        { merge: true });
+        console.log(category) 
+    res.status(200).json(category);
+});
 
 //////////////// UPDATE ////////////
 // Edit author
@@ -264,22 +282,13 @@ app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), bod
 
 
 //Upload single image
-app.post(API_URI + '/upload', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "20MB" }),
-    googleMulter.single('img'), (req, res) => {
+app.post(API_URI + '/upload', googleMulter.single('img'), (req, res) => {
         console.log("....uploading: ");
-        if(req.file.length) {
+        if(req.file != null) {
            console.log("uploaded");
-           console.log(req.file);
            uploadToFirebaseStorage(req.file).then((result) => {
                console.log(result);
-               console.log(result.data);
-               var galleryData = {
-                   filename: result
-               }
-               galleryCollection
-               .add(galleryData)
-               .then(result => res.status(200).json(galleryData))
-               .catch(error => res.status(500).json(error));
+               res.status(200).json(result)
            }).catch((error) => {
                console.log(error);
                res.status(500).json(error);
@@ -289,48 +298,38 @@ app.post(API_URI + '/upload', bodyParser.urlencoded({ extended: true }), bodyPar
         }
     });
 
-    const uploadToFirebaseStorage = (fileObject) => {
-        return new Promise((resolve, reject) => {
-            if(!fileObject) {
-                reject("Invalid file upload attempt");
+const uploadToFirebaseStorage = (fileObject) => {
+    return new Promise((resolve, reject) => {
+        if(!fileObject) {
+            reject("Invalid file upload attempt");
+        }
+
+        let idValue =  uuidv4();
+        let newFilename = `${idValue}_${fileObject.originalname}`
+        let firebaseFileUpload = bucket.file(newFilename);
+        
+        const blobStream = firebaseFileUpload.createWriteStream({
+            metadata: {
+                contentType: fileObject.mimeType
             }
-
-            let idValue = uuidv5('', uuidv5.DNS);
-            console.log(idValue);
-
-            let newFilename = `${idValue}_${fileObject.originalname}`
-            console.log(newFilename);
-
-            let firebaseFileUpload = bucket.file(newFilename);
-            console.log(firebaseFileUpload);
-
-            const blobStream = firebaseFileUpload.createWriteStream({
-                metadata: {
-                    contentType: fileObject.mimeType
-                }
-            });
-
-            blobStream.on("error", (error) => {
-                console.log("error uploading" + error);
-                reject("Error uploading file!");
-            });
-
-            blobStream.on("complete", () => {
-                console.log("Uploading completed");
-                let firebaseUrl = `https://firebasestorage.googleapis.com/v0/b/mini-bbb5b.appspot.com/o/${firebaseFileUpload.name}?alt=media&token=9d608f06-1fdc-40dc-8045-aa9a6b20b635`;
-                fileObject.fileURL = firebaseUrl;
-                resolve(firebaseUrl);
-            });
-
-            blobStream.end(fileObject.buffer);
         });
-    }
 
-//Upload an array of images
-app.post(API_URI + '/upload-multiple', googleMulter.array('imgs, 6'), (req, res, next) => {
-    res.status(200).json({});
-});
+        blobStream.on("error", (error) => {
+            console.log("error uploading" + error);
+            reject("Error uploading file!");
+        });
 
+        blobStream.on("finish", () => {
+            console.log("Uploading completed");
+            let firebaseUrl = `https://firebasestorage.googleapis.com/v0/b/day26-38142.appspot.com/o/${firebaseFileUpload.name}?alt=media&token=5aa67a11-cc55-4c04-9a39-177ab8dca9cc`;
+            fileObject.fileURL = firebaseUrl;
+            console.log(firebaseUrl);
+            resolve(firebaseUrl);
+        });
+
+        blobStream.end(fileObject.buffer);
+    });
+}
 
 ////////////////// DELETE ///////////////////////////////
 app.delete(API_URI + '/delete/articles/:id', (req, res) => {
@@ -350,19 +349,6 @@ app.delete(API_URI + '/authors', (req, res) => {
         res.status(500).json(error);
     });
 });
-
-
-///////////// UNSUBSCRIBE & SUBSCRIBE TO LISTENING FOR CHANGES ///////////
-app.get(API_URI + '/unsubscribe-article', (req, res) => {
-    unSubscribe();
-    res.status(200).json({ addCounter, updateCounter});
-});
-
-app.get(API_URI + '/subscribe-article', (req, res) => {
-    unSubscribe = subscribeArticles();
-    res.status(200).json({ addCounter, updateCounter });
-})
-
 
 //////////////// Static Assets ////////////////////////
 app.use(express.static(path.join(__dirname, '/public/mini-client_angular')));

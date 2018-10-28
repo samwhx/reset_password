@@ -1,3 +1,36 @@
-<p>
-  publish works!
-</p>
+<mat-toolbar class="main-toolbar">
+    <mat-toolbar-row>
+        <span>Publish Article</span>
+        <span class="example-spacer"></span>
+        <button mat-raised-button color="accent" (click)="onSubmit()">Publish</button>
+    </mat-toolbar-row>
+</mat-toolbar>
+<br>
+<mat-grid-list cols="3">
+    <mat-grid-tile colspan="2" rowspan="1">
+        <div>
+            <form class="example-form" [formGroup]="publishArticleForm">
+                <mat-form-field class="example-full-width">
+                    <input matInput placeholder="Title" formControlName="title">
+                </mat-form-field>
+                <mat-form-field class="example-full-width">
+                  <mat-select required formControlName="author">
+                    <mat-option *ngFor="let author of authors" value="{{author.id}}">{{author.result.firstname}} {{author.result.lastname}}</mat-option>
+                  </mat-select>
+                  <mat-label><mat-icon>book</mat-icon> <b> Author</b> <i> label</i></mat-label>
+                </mat-form-field>
+
+                <mat-form-field class="example-full-width">
+                  <mat-select required formControlName="category">
+                      <mat-option *ngFor="let category of categories" value="{{category.id}}">{{category.result.name}}</mat-option>
+                  </mat-select>
+                  <mat-label><mat-icon>group</mat-icon> <b> Category</b> <i> label</i></mat-label>
+                </mat-form-field>
+              
+                <mat-form-field class="example-full-width">
+                  <textarea matInput rows="15" cols="50" placeholder="Article" formControlName="article"></textarea>
+                </mat-form-field>
+              </form>              
+        </div>
+    </mat-grid-tile>
+</mat-grid-list>
