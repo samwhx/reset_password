@@ -10,6 +10,7 @@ export class JwtService {
   }
 
   saveToken(token: String) {
+    console.log("JWT > " + token);
     window.localStorage['jwtToken'] = token;
   }
 

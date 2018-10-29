@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
-import { RouterModule } from '@angular/router';
+import { RouterModule, PreloadAllModules } from '@angular/router';
 import { AuthorComponent } from './components/author/author.component';
 import { AddAuthorComponent } from './components/author/add-author/add-author.component';
 import { EditAuthorComponent } from './components/author/edit-author/edit-author.component';
@@ -12,47 +12,58 @@ import { RegistrationComponent } from './shared/security/registration/registrati
 import { LoginComponent } from './shared/security/login/login.component';
 import { ChangePasswordComponent } from './shared/security/change-password/change-password.component';
 import { ResetPasswordComponent } from './shared/security/reset-password/reset-password.component';
+import { AuthGuard } from './shared/services/auth-guard.service';
+import { NoAuthGuard } from './shared/services/no-auth-guard.service';
 
 const appRoutes = [
     {
         path: 'Article',
-        component: ArticleComponent,
+        component: ArticleComponent
     },
     {
         path: 'Author',
         component: AuthorComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'Author/Add',
-        component: AddAuthorComponent, 
+        component: AddAuthorComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'Author/Edit/:id',
-        component: EditAuthorComponent, 
+        component: EditAuthorComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'Category',
         component: CategoryComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'Publish',
         component: PublishComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'Registration',
         component: RegistrationComponent,
+        canActivate: [NoAuthGuard]
     },
     {
         path: 'Login',
         component: LoginComponent,
+        canActivate: [NoAuthGuard]
     },
     {
         path: 'ChangePassword',
         component: ChangePasswordComponent,
+        canActivate: [AuthGuard]
     },
     {
         path: 'ResetPassword',
         component: ResetPasswordComponent,
+        canActivate: [NoAuthGuard]
     },
     {
         path: '', 
@@ -71,7 +82,7 @@ const appRoutes = [
     ],
     imports: [
       BrowserModule,
-      RouterModule.forRoot(appRoutes)
+      RouterModule.forRoot(appRoutes , { enableTracing: true, preloadingStrategy: PreloadAllModules })
     ],
     exports: [ RouterModule ],
     providers: []
