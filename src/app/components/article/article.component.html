@@ -4,7 +4,7 @@
     <mat-grid-tile colspan="2" rowspan="1">
         <div>
             <h2>{{article.title}}</h2> 
-            <span>by {{article.authorName}} {{article.publish_date | date:'medium'}}</span>
+            <span>by <strong>{{article.authorName}}</strong> {{article.publish_date | date:'medium'}}</span>
             <p>{{article.article}}</p>
         </div>
     </mat-grid-tile>

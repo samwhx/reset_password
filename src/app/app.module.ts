@@ -46,6 +46,9 @@ import { LoginComponent } from './shared/security/login/login.component';
 import { ChangePasswordComponent } from './shared/security/change-password/change-password.component';
 import { ResetPasswordComponent } from './shared/security/reset-password/reset-password.component';
 
+import { ShowAuthedDirective } from './shared/directives/show-authed.directive';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpTokenInterceptor } from './http.token.interceptor';
 
 @NgModule({
   declarations: [
@@ -63,7 +66,8 @@ import { ResetPasswordComponent } from './shared/security/reset-password/reset-p
     RegistrationComponent, 
     LoginComponent, 
     ChangePasswordComponent, 
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    ShowAuthedDirective
   ],
 
   imports: [
@@ -85,6 +89,7 @@ import { ResetPasswordComponent } from './shared/security/reset-password/reset-p
   ],
 
   providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: HttpTokenInterceptor, multi: true },
     {
       provide: PERFECT_SCROLLBAR_CONFIG,
       useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG

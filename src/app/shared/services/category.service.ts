@@ -1,25 +1,21 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { Observable, throwError } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material';
+import { Observable } from 'rxjs';
 import { Category } from '../models/Category';
 import { Subject }    from 'rxjs';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
-  private categoryRootApiUrl = `${environment.api_url}/api/categories`;
+  private categoryRootApiUrl = `/api/categories`;
   private editCategoryNameSource = new Subject<string>();
   editCategoryName$ = this.editCategoryNameSource.asObservable();
-  constructor(private http: HttpClient,
-    public snackBar: MatSnackBar) { }
+  
+  constructor(private http: ApiService) { }
 
   public getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(this.categoryRootApiUrl)
-      .pipe(catchError(this.handleError<Category[]>('getCategories')));
+    return this.http.get(this.categoryRootApiUrl);
   }
 
   editNameBroadcast(name: string) {
@@ -33,25 +29,10 @@ export class CategoryService {
   
   editCategory(details): Observable<Category> {
     console.log(details);
-    return this.http.put<Category>(this.categoryRootApiUrl, details)
-    .pipe(catchError(this.handleError<Category>('editCategory')));
+    return this.http.put(this.categoryRootApiUrl, details);
   }
 
   addCategory(category): Observable<any> {
-    return this.http.post(this.categoryRootApiUrl, category)
-    .pipe(catchError(this.handleError<Category>('addCategory')));
-  }
-  
-  private handleError<T>(operation = 'operation', result?: T){
-    return (error: any): Observable<T> => {
-      console.log(JSON.stringify(error.error));
-      this.showErrorMessage(JSON.stringify(error.error));
-      return throwError(error || 'generic backend error');
-    }
-  }
-
-  showErrorMessage(msg) {
-    let snackBarRef = this.snackBar.open(msg, 'Undo');
-    console.log(snackBarRef);
+    return this.http.post(this.categoryRootApiUrl, category);
   }
 }

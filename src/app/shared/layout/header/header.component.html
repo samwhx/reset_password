@@ -1,43 +1,91 @@
 <mat-toolbar color="primary" class="main-toolbar">
   <mat-toolbar-row>
       <span><a routerLink="/Article" class="router-link">Ngx Blog </a></span>
+      <span *appShowAuthed="false"> &nbsp; I am logout !</span>
+      <span *appShowAuthed="true"> &nbsp; I am login !</span>
       <span class="example-spacer"></span>
       <button mat-icon-button [matMenuTriggerFor]="menu">
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="navigateToRegister()">
+        <button *appShowAuthed="false" mat-menu-item (click)="navigateToRegister()">
                 <mat-icon>note_add</mat-icon>
                 <span>Register</span>
         </button>
-        <button mat-menu-item (click)="navigateToLogin()">
+        <button *appShowAuthed="false" mat-menu-item (click)="navigateToLogin()">
                 <mat-icon>person_pin</mat-icon>
                 <span>Login</span>
         </button>
-        <button mat-menu-item (click)="navigateToChangePassword()">
+        <button *appShowAuthed="true" mat-menu-item (click)="navigateToChangePassword()">
                 <mat-icon>star</mat-icon>
                 <span>Change Password</span>
         </button>
-        <button mat-menu-item (click)="navigateToResetPassword()">
+        <button *appShowAuthed="false" mat-menu-item (click)="navigateToResetPassword()">
                 <mat-icon>change_history</mat-icon>
                 <span>Reset Password</span>
         </button>
-        <button mat-menu-item (click)="navigateToAuthor()">
+        <button *appShowAuthed="true" mat-menu-item (click)="navigateToAuthor()">
             <mat-icon>book</mat-icon>
             <span>Authors</span>
         </button>
-        <button mat-menu-item (click)="navigateToCategory()">
+        <button *appShowAuthed="true" mat-menu-item (click)="navigateToCategory()">
             <mat-icon>category</mat-icon>
             <span>Categories</span>
         </button>
-        <button mat-menu-item (click)="navigateToPublish()">
+        <button *appShowAuthed="true" mat-menu-item (click)="navigateToPublish()">
             <mat-icon>publish</mat-icon>
             <span>Publish Article</span>
         </button>
-        <button mat-menu-item (click)="logout()">
+        <button *appShowAuthed="true" mat-menu-item (click)="logout()">
             <mat-icon>logout</mat-icon>
             <span>Logout</span>
         </button>
       </mat-menu>
   </mat-toolbar-row>
 </mat-toolbar>
+<!--
+<mat-toolbar color="primary" class="main-toolbar">
+    <mat-toolbar-row>
+        <span><a routerLink="/Article" class="router-link">Ngx Blog </a></span>
+        <span class="example-spacer"></span>
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button *appShowAuthed="false" mat-menu-item (click)="navigateToRegister()">
+                  <mat-icon>note_add</mat-icon>
+                  <span>Register</span>
+          </button>
+          <button *appShowAuthed="false" mat-menu-item (click)="navigateToLogin()">
+                  <mat-icon>person_pin</mat-icon>
+                  <span>Login</span>
+          </button>
+          <button *appShowAuthed="true" mat-menu-item (click)="navigateToChangePassword()">
+                  <mat-icon>star</mat-icon>
+                  <span>Change Password</span>
+          </button>
+          <button *appShowAuthed="false" mat-menu-item (click)="navigateToResetPassword()">
+                  <mat-icon>change_history</mat-icon>
+                  <span>Reset Password</span>
+          </button>
+          <button *appShowAuthed="true" mat-menu-item (click)="navigateToAuthor()">
+              <mat-icon>book</mat-icon>
+              <span>Authors</span>
+          </button>
+          <button *appShowAuthed="true" mat-menu-item (click)="navigateToCategory()">
+              <mat-icon>category</mat-icon>
+              <span>Categories</span>
+          </button>
+          <button *appShowAuthed="true" mat-menu-item (click)="navigateToPublish()">
+              <mat-icon>publish</mat-icon>
+              <span>Publish Article</span>
+          </button>
+          <button *appShowAuthed="true" mat-menu-item (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Logout</span>
+          </button>
+        </mat-menu>
+    </mat-toolbar-row>
+  </mat-toolbar>
+  
+-->

@@ -7,8 +7,11 @@ const express = require('express'),
       uuidv4 = require('uuid/v4'),
       multer = require("multer"),
       mysql = require("mysql"),
-      jwt = require('jsonwebtoken');
-      crypto = require('crypto');
+      jwt = require('jsonwebtoken'),
+      crypto = require('crypto'),
+      passport = require('passport'),
+      LocalStrategy = require('passport-local').Strategy,
+      auth = require('./auth'),
       cors = require('cors');
 
 const app = express();
@@ -36,7 +39,7 @@ var articlesCollection = db.collection('articles');
 var categoriesCollection = db.collection('categories');
 
 
-const sqlInsertUser = "INSERT INTO USER (email, password, fullname) VALUES (?, ?, ?)";
+const sqlInsertUser = "INSERT INTO USER (email, password, fullname, salt) VALUES (?, ?, ?, ?)";
 const sqlFindUserByEmail = "SELECT * FROM USER WHERE email = ?";
 
 var pool = mysql.createPool({
@@ -77,6 +80,7 @@ var makeQuery = (sql, pool)=>{
 
 var insertUser = makeQuery(sqlInsertUser, pool);
 var findUserByEmail = makeQuery(sqlFindUserByEmail, pool);
+
 //export Google_Application_Credentials
 const gStorage = new Storage({
       projectId: process.env.FIREBASE_PROJECT_ID
@@ -90,12 +94,49 @@ const googleMulter = multer({
     }
 })
 
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password'
+}, function(email, password, done) {
+    findUserByEmail([email]).then((result)=>{
+        console.log("????" +  JSON.stringify(result));
+        if(result.length > 0){
+            console.log(isPasswordValid(password, result[0].password, result[0].salt));
+            console.log(result[0].salt);
+            console.log(password);
+            if(isPasswordValid(password, result[0].password, result[0].salt)){
+                console.log("ITS MATCH !");
+                return done(null, result[0]);
+            }else{
+                return done(null, false, {errors: {'email or password': 'is invalid'}});
+            }
+        }else{
+            return done(null, false, {errors: {'email or password': 'is invalid'}});
+        }
+    }).catch(done)
+  
+}));
 
 function convertPasswordToHash(password){
-    hash = crypto.createHash('sha256');
-    console.log(password);
-    hash.update(password);
-    return hash.digest('hex');
+    salt = crypto.randomBytes(Math.ceil(16/2))
+            .toString('hex') 
+            .slice(0,16); 
+    const key = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512');
+    console.log("SALT 1> ", salt);
+    let hashObj = {
+        salt: salt,
+        hash: key.toString('hex')
+    }
+    return hashObj;
+}
+
+function isPasswordValid(password, currentHash, salt){
+    console.log("SALT 2> ", salt);
+    console.log("password > ", password);
+    const key = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512');
+    console.log("hash >>>> ?" + key.toString('hex'));
+    console.log("currentHash>>>> ?" + currentHash);            
+    return key.toString('hex') === currentHash;
 }
 
 app.post(API_URI + '/register', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
@@ -103,47 +144,68 @@ app.post(API_URI + '/register', bodyParser.urlencoded({ extended: true}), bodyPa
     let registerForm = req.body;
     let registrationObj = {...registerForm};
     console.log(JSON.stringify(registrationObj));
-    registrationObj.password = convertPasswordToHash(registrationObj.password);
-    insertUser([registrationObj.email, registrationObj.password, registrationObj.fullName]).then((results)=>{
+    let convertSecObj = convertPasswordToHash(registrationObj.password);
+    registrationObj.password = convertSecObj.hash;
+    registrationObj.salt = convertSecObj.salt;
+    
+    insertUser([registrationObj.email, 
+        registrationObj.password, 
+        registrationObj.fullName,
+        registrationObj.salt]).then((results)=>{
         console.log(results);
-        res.status(200).json(results);
+        res.status(200).json({user: registrationObj});
     }).catch((error)=>{
         console.log(error);
         res.status(500).json(error);
     });
 })
 
-app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
+app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res, next)=>{
     let user = {...req.body};
     let email = user.email;
     let password = user.password;
-    let convertedPassInHash = convertPasswordToHash(password);
-    console.log(email);
-    findUserByEmail([email]).then((result)=>{
-        console.log("????" +  JSON.stringify(result));
-        if(result.length > 0){
-            console.log(result[0].password === convertedPassInHash);
-            console.log(result[0].password == convertedPassInHash);
-            console.log(result[0].password);
-            console.log(convertedPassInHash);
-            
-            if(result[0].password === convertedPassInHash){
-                console.log("MATCH !");
-                let token = jwt.sign({...result[0]}, process.env.JWT_SECRET);
-                console.log("JWTToken > " , token);
-                res.status(200).json({success: true, token: 'JWT ' + token});
-            }else{
-                res.status(401).json({success: false, msg: "Authentication failed, wrong password"});
-            }
-        }else{
-            res.status(401).json({success: false, msg: "Authentication failed, email doesn't exist"});
+
+    if(!email){
+        return res.status(422).json({errors: {email: "can't be blank"}});
+      }
+    
+      if(!password){
+        return res.status(422).json({errors: {password: "can't be blank"}});
+      }
+    
+    passport.authenticate('local', {session: false}, function(err, user, info){
+        if(err){ return next(err); }
+        var today = new Date();
+        var exp = new Date(today);
+        exp.setDate(today.getDate() + 60);
+        console.log(">>> " + user.id);
+        let token = jwt.sign({
+            id: user.id,
+            username: user.email,
+            exp: parseInt(exp.getTime() / 1000),
+        }, process.env.JWT_SECRET);
+
+        if(user){
+          console.log("JWT token > ", token);
+          user.token = token;
+          return res.json({user: user});
+        } else {
+          return res.status(422).json(info);
         }
-    }).catch((error)=>{
-        console.log(error);
-        res.status(500).json(error);
-    })
+      })(req, res, next);
     
 })
+
+app.get('/user', auth.required, function(req, res, next){
+    console.log(req.payload.id);
+    /*
+    User.findById(req.payload.id).then(function(user){
+      if(!user){ return res.sendStatus(401); }
+  
+      return res.json({user: user.toAuthJSON()});
+    }).catch(next);*/
+    return res.json({});
+});
 
 app.post(API_URI + '/changePassword', (req, res)=>{
     res.status(200).json({});
@@ -362,10 +424,12 @@ app.put(API_URI + '/categories', bodyParser.urlencoded({ extended: true }), body
 //////////////// UPDATE ////////////
 // Edit author
 app.put(API_URI + '/authors', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
+    //console.log("xxxx" + JSON.stringify(req));
     console.log(JSON.stringify(req.body));
     let author = {... req.body};
+    console.log(author);
     let idValue = author.id
-    console.log(idValue);
+    console.log(">>>> " + idValue);
     authorsCollection.doc(idValue).update(
         author,
         { merge: true });

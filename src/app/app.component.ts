@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-
+import { SecurityService } from './shared/services/security.service';
+import { User } from './shared/models/user'; 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -7,4 +8,12 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'meenee';
+
+  constructor(private userService:SecurityService){
+    console.log(this.userService.getCurrentUser());
+    let user: User = this.userService.getCurrentUser();
+    if(JSON.stringify(user) == "{}"){
+      this.userService.logout();
+    }
+  }
 }

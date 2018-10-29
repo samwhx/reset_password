@@ -1,54 +1,72 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material';
+import { BehaviorSubject ,  ReplaySubject } from 'rxjs';
+import { ApiService } from './api.service';
+import { JwtService } from './jwt.service';
 import { User } from '../models/user';
+import { map ,  distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SecurityService {
-  private registerRootApiUrl = `${environment.api_url}/api/register`;
-  private loginRootApiUrl = `${environment.api_url}/api/login`;
-  private resetPasswordRootApiUrl = `${environment.api_url}/api/resetPassword`;
-  private changePasswordRootApiUrl = `${environment.api_url}/api/changePassword`;
+  private registerRootApiUrl = `/api/register`;
+  private loginRootApiUrl = `/api/login`;
+  private resetPasswordRootApiUrl = `/api/resetPassword`;
+  private changePasswordRootApiUrl = `/api/changePassword`;
 
-  constructor(private http: HttpClient, private snackSvc: MatSnackBar ) { }
+  private currentUserSubject = new BehaviorSubject<User>({} as User);
+  public currentUser = this.currentUserSubject.asObservable().pipe(distinctUntilChanged());
+
+  private isAuthenticatedSubject = new ReplaySubject<boolean>(1);
+  public isAuthenticated = this.isAuthenticatedSubject.asObservable();
+
+  constructor( private http: ApiService,
+    private jwtService: JwtService) { }
 
   register(user){
     console.log("Register srvice !")
-    return this.http.post(this.registerRootApiUrl, user)
-    .pipe(catchError(this.handleError<User>('register')));
+    return this.http.post(this.registerRootApiUrl, user);
+  }
+
+  setAuth(user: User) {
+    // Save JWT sent from server in localstorage
+    this.jwtService.saveToken(user.token);
+    // Set current user data into observable
+    this.currentUserSubject.next(user);
+    // Set isAuthenticated to true
+    this.isAuthenticatedSubject.next(true);
   }
 
   login(user){
     return this.http.post(this.loginRootApiUrl, user)
-    .pipe(catchError(this.handleError<User>('login')));
+      .pipe(map(
+      data => {
+        console.log("login ...")
+        this.setAuth(data.user);
+        return data;
+      }
+    ));
   }
 
-
   changePassword(user){
-    return this.http.post(this.changePasswordRootApiUrl, user)
-    .pipe(catchError(this.handleError<User>('changePassword')));
+    return this.http.post(this.changePasswordRootApiUrl, user);
   }
 
   resetPassword(user){
-    return this.http.post(this.resetPasswordRootApiUrl, user)
-    .pipe(catchError(this.handleError<User>('resetPassword')));
+    return this.http.post(this.resetPasswordRootApiUrl, user);
   }
 
-  private handleError<T>(operation = 'operation', result?: T){
-    return (error: any): Observable<T> => {
-      console.log(JSON.stringify(error.error));
-      this.showErrorMessage(JSON.stringify(error.error));
-      return throwError(error || 'generic backend error');
-    }
+  getCurrentUser(): User {
+    return this.currentUserSubject.value;
   }
 
-  showErrorMessage(msg) {
-    let snackBarRef = this.snackSvc.open(msg, 'Undo');
-    console.log(snackBarRef);
+  logout() {
+    // Remove JWT from localstorage
+    this.jwtService.destroyToken();
+    // Set current user to an empty object
+    this.currentUserSubject.next({} as User);
+    // Set auth status to false
+    this.isAuthenticatedSubject.next(false);
   }
 }
