@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 })
 export class HeaderComponent implements OnInit {
 
-  constructor(private router:  Router) { }
+  constructor(private router: Router) { }
 
   ngOnInit() {
   }
@@ -23,6 +23,22 @@ export class HeaderComponent implements OnInit {
 
   navigateToPublish(){
     this.router.navigate(['/Publish']);
+  }
+
+  navigateToRegister(){
+    this.router.navigate(['/Registration']);
+  }
+
+  navigateToLogin(){
+    this.router.navigate(['/Login']);
+  }
+
+  navigateToChangePassword(){
+    this.router.navigate(['/ChangePassword']);
+  }
+
+  navigateToResetPassword(){
+    this.router.navigate(['/ResetPassword']);
   }
 
 }

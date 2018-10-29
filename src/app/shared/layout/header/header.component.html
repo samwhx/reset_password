@@ -6,6 +6,22 @@
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="navigateToRegister()">
+                <mat-icon>note_add</mat-icon>
+                <span>Register</span>
+        </button>
+        <button mat-menu-item (click)="navigateToLogin()">
+                <mat-icon>person_pin</mat-icon>
+                <span>Login</span>
+        </button>
+        <button mat-menu-item (click)="navigateToChangePassword()">
+                <mat-icon>star</mat-icon>
+                <span>Change Password</span>
+        </button>
+        <button mat-menu-item (click)="navigateToResetPassword()">
+                <mat-icon>change_history</mat-icon>
+                <span>Reset Password</span>
+        </button>
         <button mat-menu-item (click)="navigateToAuthor()">
             <mat-icon>book</mat-icon>
             <span>Authors</span>

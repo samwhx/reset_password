@@ -41,6 +41,12 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
 };
 
+import { RegistrationComponent } from './shared/security/registration/registration.component';
+import { LoginComponent } from './shared/security/login/login.component';
+import { ChangePasswordComponent } from './shared/security/change-password/change-password.component';
+import { ResetPasswordComponent } from './shared/security/reset-password/reset-password.component';
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -53,7 +59,11 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PublishComponent,
     AddCategoryComponent,
     EditCategoryComponent,
-    DeleteAuthorDialog
+    DeleteAuthorDialog,
+    RegistrationComponent, 
+    LoginComponent, 
+    ChangePasswordComponent, 
+    ResetPasswordComponent
   ],
 
   imports: [

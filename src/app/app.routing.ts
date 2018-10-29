@@ -8,6 +8,11 @@ import { EditAuthorComponent } from './components/author/edit-author/edit-author
 import { CategoryComponent } from './components/category/category.component';
 import { ArticleComponent } from './components/article/article.component';
 import { PublishComponent } from './components/article/publish/publish.component';
+import { RegistrationComponent } from './shared/security/registration/registration.component';
+import { LoginComponent } from './shared/security/login/login.component';
+import { ChangePasswordComponent } from './shared/security/change-password/change-password.component';
+import { ResetPasswordComponent } from './shared/security/reset-password/reset-password.component';
+
 const appRoutes = [
     {
         path: 'Article',
@@ -32,6 +37,22 @@ const appRoutes = [
     {
         path: 'Publish',
         component: PublishComponent,
+    },
+    {
+        path: 'Registration',
+        component: RegistrationComponent,
+    },
+    {
+        path: 'Login',
+        component: LoginComponent,
+    },
+    {
+        path: 'ChangePassword',
+        component: ChangePasswordComponent,
+    },
+    {
+        path: 'ResetPassword',
+        component: ResetPasswordComponent,
     },
     {
         path: '', 

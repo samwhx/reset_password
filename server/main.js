@@ -6,6 +6,9 @@ const express = require('express'),
       bodyParser = require('body-parser'),
       uuidv4 = require('uuid/v4'),
       multer = require("multer"),
+      mysql = require("mysql"),
+      jwt = require('jsonwebtoken');
+      crypto = require('crypto');
       cors = require('cors');
 
 const app = express();
@@ -33,6 +36,47 @@ var articlesCollection = db.collection('articles');
 var categoriesCollection = db.collection('categories');
 
 
+const sqlInsertUser = "INSERT INTO USER (email, password, fullname) VALUES (?, ?, ?)";
+const sqlFindUserByEmail = "SELECT * FROM USER WHERE email = ?";
+
+var pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    connectionLimit: process.env.DB_CONLIMIT,
+    debug: false
+});
+
+var makeQuery = (sql, pool)=>{
+    console.log(sql);
+    
+    return  (args)=>{
+        let queryPromsie = new Promise((resolve, reject)=>{
+            pool.getConnection((err, connection)=>{
+                if(err){
+                    reject(err);
+                    return;
+                }
+                console.log(args);
+                connection.query(sql, args || [], (err, results)=>{
+                    connection.release();
+                    if(err){
+                        reject(err);
+                        return;
+                    }
+                    console.log(">>> "+ results);
+                    resolve(results); 
+                })
+            });
+        });
+        return queryPromsie;
+    }
+}
+
+var insertUser = makeQuery(sqlInsertUser, pool);
+var findUserByEmail = makeQuery(sqlFindUserByEmail, pool);
 //export Google_Application_Credentials
 const gStorage = new Storage({
       projectId: process.env.FIREBASE_PROJECT_ID
@@ -46,6 +90,68 @@ const googleMulter = multer({
     }
 })
 
+
+function convertPasswordToHash(password){
+    hash = crypto.createHash('sha256');
+    console.log(password);
+    hash.update(password);
+    return hash.digest('hex');
+}
+
+app.post(API_URI + '/register', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
+    console.log("Post backend register");
+    let registerForm = req.body;
+    let registrationObj = {...registerForm};
+    console.log(JSON.stringify(registrationObj));
+    registrationObj.password = convertPasswordToHash(registrationObj.password);
+    insertUser([registrationObj.email, registrationObj.password, registrationObj.fullName]).then((results)=>{
+        console.log(results);
+        res.status(200).json(results);
+    }).catch((error)=>{
+        console.log(error);
+        res.status(500).json(error);
+    });
+})
+
+app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
+    let user = {...req.body};
+    let email = user.email;
+    let password = user.password;
+    let convertedPassInHash = convertPasswordToHash(password);
+    console.log(email);
+    findUserByEmail([email]).then((result)=>{
+        console.log("????" +  JSON.stringify(result));
+        if(result.length > 0){
+            console.log(result[0].password === convertedPassInHash);
+            console.log(result[0].password == convertedPassInHash);
+            console.log(result[0].password);
+            console.log(convertedPassInHash);
+            
+            if(result[0].password === convertedPassInHash){
+                console.log("MATCH !");
+                let token = jwt.sign({...result[0]}, process.env.JWT_SECRET);
+                console.log("JWTToken > " , token);
+                res.status(200).json({success: true, token: 'JWT ' + token});
+            }else{
+                res.status(401).json({success: false, msg: "Authentication failed, wrong password"});
+            }
+        }else{
+            res.status(401).json({success: false, msg: "Authentication failed, email doesn't exist"});
+        }
+    }).catch((error)=>{
+        console.log(error);
+        res.status(500).json(error);
+    })
+    
+})
+
+app.post(API_URI + '/changePassword', (req, res)=>{
+    res.status(200).json({});
+})
+
+app.post(API_URI + '/resetPassword', (req, res)=>{
+    res.status(200).json({});
+})
 
 /////////////////////////// READ ///////////////////////////////////////////
 // GET array of authors

@@ -1,0 +1,22 @@
+<mat-toolbar class="main-toolbar">
+    <mat-toolbar-row>
+        <span>Sign In</span>
+        <span class="example-spacer"></span>
+        <button mat-raised-button color="accent" (click)="onSubmit()">Login</button>
+    </mat-toolbar-row>
+</mat-toolbar>
+<br>
+<mat-grid-list cols="3">
+    <mat-grid-tile colspan="2" rowspan="1">
+        <div>
+            <form class="example-form" [formGroup]="loginForm">
+                <mat-form-field class="example-full-width">
+                    <input matInput placeholder="email" formControlName="email">
+                </mat-form-field>
+                <mat-form-field class="example-full-width">
+                    <input matInput type="password" placeholder="password" formControlName="password">
+                </mat-form-field>
+              </form>              
+        </div>
+    </mat-grid-tile>
+</mat-grid-list>
