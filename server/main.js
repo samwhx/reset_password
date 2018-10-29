@@ -196,14 +196,8 @@ app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParse
     
 })
 
-app.get('/user', auth.required, function(req, res, next){
+app.get(API_URI + '/user', auth.required, function(req, res, next){
     console.log(req.payload.id);
-    /*
-    User.findById(req.payload.id).then(function(user){
-      if(!user){ return res.sendStatus(401); }
-  
-      return res.json({user: user.toAuthJSON()});
-    }).catch(next);*/
     return res.json({});
 });
 
@@ -217,7 +211,7 @@ app.post(API_URI + '/resetPassword', (req, res)=>{
 
 /////////////////////////// READ ///////////////////////////////////////////
 // GET array of authors
-app.get(API_URI + '/authors', (req, res) => {
+app.get(API_URI + '/authors', auth.required, (req, res) => {
     authorsCollection
     .get()
     // console.log(authorsCollection)
@@ -240,7 +234,7 @@ app.get(API_URI + '/authors', (req, res) => {
 });
 
 // Search by firstname & lastname
-app.get(API_URI + '/author', (req, res) => {
+app.get(API_URI + '/author', auth.required, (req, res) => {
     let firstname = req.query.firstname;
     let lastname = req.query.lastname;
     console.log(firstname, lastname);
@@ -277,7 +271,7 @@ app.get(API_URI + '/author', (req, res) => {
 /**
  * get author by id.
  */
-app.get(API_URI + '/authors/:id', (req, res) => {
+app.get(API_URI + '/authors/:id', auth.required,(req, res) => {
     let idValue = req.params.id;
     
     authorsCollection.
@@ -333,7 +327,7 @@ app.get(API_URI + '/articles', (req, res) => {
 });
 
 // GET one article by title
-app.get(API_URI + '/article', (req, res) => {
+app.get(API_URI + '/article', auth.required,(req, res) => {
     let title = req.query.title
     console.log(title);
     if (typeof(title === 'undefined')){
@@ -359,7 +353,7 @@ app.get(API_URI + '/article', (req, res) => {
 
 ///////////////// CREATE //////////////////////////////
   // Add one author
-  app.post(API_URI + '/authors', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res) => { 
+app.post(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res) => { 
     let author = { ...req.body };
     console.log(".....author" + JSON.stringify(author));
     authorsCollection
@@ -369,7 +363,7 @@ app.get(API_URI + '/article', (req, res) => {
 })
 
 // Add one article 
-app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
+app.post(API_URI + '/articles', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
     let article = {... req.body };
     console.log(".....articles" + JSON.stringify(article));
     articlesCollection
@@ -378,7 +372,7 @@ app.post(API_URI + '/articles', bodyParser.urlencoded({ extended: true}), bodyPa
         .catch(error => res.status(500).json(error));
 });
 
-app.post(API_URI + '/categories', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
+app.post(API_URI + '/categories', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
     let category = {... req.body };
     console.log(".....categories" + JSON.stringify(category));
     categoriesCollection
@@ -387,7 +381,7 @@ app.post(API_URI + '/categories', bodyParser.urlencoded({ extended: true}), body
         .catch(error => res.status(500).json(error));
 });
 
-app.get(API_URI + '/categories', (req, res) => {
+app.get(API_URI + '/categories', auth.required,(req, res) => {
     categoriesCollection
     .get()
     .then(snapshot => {
@@ -409,7 +403,7 @@ app.get(API_URI + '/categories', (req, res) => {
 });
 
 
-app.put(API_URI + '/categories', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
+app.put(API_URI + '/categories', auth.required, bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
     console.log(JSON.stringify(req.body));
     let category = {... req.body};
     let idValue = category.id
@@ -423,7 +417,7 @@ app.put(API_URI + '/categories', bodyParser.urlencoded({ extended: true }), body
 
 //////////////// UPDATE ////////////
 // Edit author
-app.put(API_URI + '/authors', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
+app.put(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "10MB" }), (req, res) => {
     //console.log("xxxx" + JSON.stringify(req));
     console.log(JSON.stringify(req.body));
     let author = {... req.body};
@@ -438,7 +432,7 @@ app.put(API_URI + '/authors', bodyParser.urlencoded({ extended: true }), bodyPar
 });
 
 // Edit article
-app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "50MB" }), (req, res) => {
+app.put(API_URI + '/article/:id', auth.required, bodyParser.urlencoded({ extended: true }), bodyParser.json({ limit: "50MB" }), (req, res) => {
     let idValue = req.params.id;
     console.log(idValue);
     console.log(JSON.stringify(req.body));
@@ -452,7 +446,7 @@ app.put(API_URI + '/article/:id', bodyParser.urlencoded({ extended: true }), bod
 
 
 //Upload single image
-app.post(API_URI + '/upload', googleMulter.single('img'), (req, res) => {
+app.post(API_URI + '/upload', auth.required, googleMulter.single('img'), (req, res) => {
         console.log("....uploading: ");
         if(req.file != null) {
            console.log("uploaded");
@@ -502,7 +496,7 @@ const uploadToFirebaseStorage = (fileObject) => {
 }
 
 ////////////////// DELETE ///////////////////////////////
-app.delete(API_URI + '/delete/articles/:id', (req, res) => {
+app.delete(API_URI + '/delete/articles/:id', auth.required, (req, res) => {
     let idValue = req.params.id;
     articlesCollection.doc(idValue).delete().then((result) => {
         res.status(200).json(result);
@@ -511,7 +505,7 @@ app.delete(API_URI + '/delete/articles/:id', (req, res) => {
     });
 });
 
-app.delete(API_URI + '/authors', (req, res) => {
+app.delete(API_URI + '/authors', auth.required,(req, res) => {
     let idValue = req.query.id;
     authorsCollection.doc(idValue).delete().then((result) => {
         res.status(200).json(result);
