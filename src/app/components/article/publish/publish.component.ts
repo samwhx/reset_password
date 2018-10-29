@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material';
 
 import { Author } from '../../../shared/models/author';
 import { Category } from '../../../shared/models/category';
-import { Article } from '../../../shared/models/Article';
+import { Article } from '../../../shared/models/article';
 
 @Component({
   selector: 'app-publish',

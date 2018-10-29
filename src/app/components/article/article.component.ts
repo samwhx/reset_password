@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ArticleService } from '../../shared/services/article.service';
-import { Article } from '../../shared/models/Article';
+import { Article } from '../../shared/models/article';
 @Component({
   selector: 'app-article',
   templateUrl: './article.component.html',
