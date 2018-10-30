@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit {
       email: email,
       password: password
     }
-
+    //first hash to the server side
     this.securitySvc.login(loginUser).subscribe((result)=>{
       console.log(result);
       let snackBarRef = this.snackSvc.open("Login Successful!", 'Done', {

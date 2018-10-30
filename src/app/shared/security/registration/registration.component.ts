@@ -32,7 +32,6 @@ export class RegistrationComponent implements OnInit {
   }
 
   onSubmit(){
-    let password = this.registrationForm.get("password").value;
     let confirmPassword = this.registrationForm.get("confirmPassword").value;
     let email = this.registrationForm.get("email").value;
     let fullName = this.registrationForm.get("fullName").value;
@@ -42,8 +41,7 @@ export class RegistrationComponent implements OnInit {
       password: confirmPassword,
       fullName: fullName
     }
-    //let hashPassword = sha512(confirmPassword);
-    //sha512('Message to hash');
+    ///first hash to the server side
     this.securitySvc.register(registerUser).subscribe((result)=>{
       console.log(result);
       let snackBarRef = this.snackSvc.open("Registration Ok!", 'Done', {

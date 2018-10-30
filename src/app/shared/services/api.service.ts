@@ -3,7 +3,6 @@ import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MatSnackBar } from '@angular/material';
-import { JwtService } from './jwt.service';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -13,7 +12,6 @@ import { catchError } from 'rxjs/operators';
 export class ApiService {
   constructor(
     private http: HttpClient,
-    private jwtService: JwtService,
     private snackBar: MatSnackBar
   ) {}
 

@@ -99,11 +99,7 @@ passport.use(new LocalStrategy({
   passwordField: 'password'
 }, function(email, password, done) {
     findUserByEmail([email]).then((result)=>{
-        console.log("????" +  JSON.stringify(result));
         if(result.length > 0){
-            console.log(isPasswordValid(password, result[0].password, result[0].salt));
-            console.log(result[0].salt);
-            console.log(password);
             if(isPasswordValid(password, result[0].password, result[0].salt)){
                 console.log("ITS MATCH !");
                 return done(null, result[0]);
@@ -131,11 +127,7 @@ function convertPasswordToHash(password){
 }
 
 function isPasswordValid(password, currentHash, salt){
-    console.log("SALT 2> ", salt);
-    console.log("password > ", password);
     const key = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512');
-    console.log("hash >>>> ?" + key.toString('hex'));
-    console.log("currentHash>>>> ?" + currentHash);            
     return key.toString('hex') === currentHash;
 }
 
@@ -178,15 +170,14 @@ app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParse
         var today = new Date();
         var exp = new Date(today);
         exp.setDate(today.getDate() + 60);
-        console.log(">>> " + user.id);
         let token = jwt.sign({
             id: user.id,
             username: user.email,
             exp: parseInt(exp.getTime() / 1000),
         }, process.env.JWT_SECRET);
-
+        
         if(user){
-          console.log("JWT token > ", token);
+        //  console.log("JWT token > ", token);
           user.token = token;
           return res.json({user: user});
         } else {
