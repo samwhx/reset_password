@@ -39,11 +39,11 @@ export class ValidateAndResetComponent implements OnInit {
 
   ngOnInit() {
     this.securitySvc.validateReset({'email': this.email, 'uuid': this.UUID}).subscribe((result) => {
-      console.log(result);
-      // if (isEmpty(result)) {
-      //   this.snackSvc.open("Invalid Reset", 'Done', {duration: 3000});
-      //   this.router.navigate(['/']);
-      // }
+      console.log('VALIDATEEEEEEEEEEEEEE', result);
+      if (isEmpty(result)) {
+        this.snackSvc.open("Invalid Reset", 'Done', {duration: 3000});
+        this.router.navigate(['/']);
+      }
     });
   }
 
