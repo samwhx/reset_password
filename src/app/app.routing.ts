@@ -14,6 +14,7 @@ import { ChangePasswordComponent } from './shared/security/change-password/chang
 import { ResetPasswordComponent } from './shared/security/reset-password/reset-password.component';
 import { AuthGuard } from './shared/services/auth-guard.service';
 import { NoAuthGuard } from './shared/services/no-auth-guard.service';
+import { ValidateAndResetComponent } from './shared/security/validate-and-reset/validate-and-reset.component';
 
 const appRoutes = [
     {
@@ -64,6 +65,10 @@ const appRoutes = [
         path: 'ResetPassword',
         component: ResetPasswordComponent,
         canActivate: [NoAuthGuard]
+    },
+    {
+        path: 'ValidateAndReset',
+        component: ValidateAndResetComponent,
     },
     {
         path: '', 

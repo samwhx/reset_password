@@ -12,6 +12,8 @@ export class SecurityService {
   private registerRootApiUrl = `/api/register`;
   private loginRootApiUrl = `/api/login`;
   private resetPasswordRootApiUrl = `/api/resetPassword`;
+  private validatePasswordRootApiUrl = `/api/validateReset`;
+  private validatedResetRootApiUrl = `/api/validatedReset`;
   private changePasswordRootApiUrl = `/api/changePassword`;
   private requestToResetPasswordRootApiUrl = `/api/reqToResetPassword`;
 
@@ -59,6 +61,14 @@ export class SecurityService {
 
   resetPassword(user){
     return this.http.post(this.resetPasswordRootApiUrl, user);
+  }
+
+  validateReset(user){
+    return this.http.post(this.validatePasswordRootApiUrl, user);
+  }
+
+  validatedReset(user){
+    return this.http.put(this.validatedResetRootApiUrl, user);
   }
 
   getCurrentUser(): User {

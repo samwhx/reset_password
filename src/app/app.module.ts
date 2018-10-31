@@ -49,6 +49,7 @@ import { ResetPasswordComponent } from './shared/security/reset-password/reset-p
 import { ShowAuthedDirective } from './shared/directives/show-authed.directive';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpTokenInterceptor } from './http.token.interceptor';
+import { ValidateAndResetComponent } from './shared/security/validate-and-reset/validate-and-reset.component';
 
 @NgModule({
   declarations: [
@@ -67,7 +68,8 @@ import { HttpTokenInterceptor } from './http.token.interceptor';
     LoginComponent, 
     ChangePasswordComponent, 
     ResetPasswordComponent,
-    ShowAuthedDirective
+    ShowAuthedDirective,
+    ValidateAndResetComponent
   ],
 
   imports: [
