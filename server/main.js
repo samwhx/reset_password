@@ -231,7 +231,7 @@ app.post(API_URI + '/validateReset', bodyParser.urlencoded({ extended: true}), b
             if(result[0].reset_password == req.body.uuid){
                 return res.json({'salt': result[0].salt});
             } else {
-                return res.status(404).json({error: 'error processing'})
+                return res.status(200).json({'salt': ''})
             }
         }
     });

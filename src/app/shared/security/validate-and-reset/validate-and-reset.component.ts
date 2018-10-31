@@ -40,7 +40,7 @@ export class ValidateAndResetComponent implements OnInit {
   ngOnInit() {
     this.securitySvc.validateReset({'email': this.email, 'uuid': this.UUID}).subscribe((result) => {
       console.log('VALIDATEEEEEEEEEEEEEE', result);
-      if (isEmpty(result)) {
+      if (result.salt === '') {
         this.snackSvc.open("Invalid Reset", 'Done', {duration: 3000});
         this.router.navigate(['/']);
       }
@@ -64,8 +64,3 @@ export class ValidateAndResetComponent implements OnInit {
   }
 
 }
-
-function isEmpty(obj) {
-  return Object.keys(obj).length === 0;
-}
-
