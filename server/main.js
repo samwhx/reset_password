@@ -40,6 +40,7 @@ var categoriesCollection = db.collection('categories');
 
 
 const sqlInsertUser = "INSERT INTO USER (email, password, fullname, salt) VALUES (?, ?, ?, ?)";
+const sqlInsertUserPassword = "UPDATE USER SET password = ? WHERE (email = ? AND reset_password = ?)";
 const sqlFindUserByEmail = "SELECT * FROM USER WHERE email = ?";
 
 var pool = mysql.createPool({
@@ -79,6 +80,7 @@ var makeQuery = (sql, pool)=>{
 }
 
 var insertUser = makeQuery(sqlInsertUser, pool);
+var insertUserPassword = makeQuery(sqlInsertUserPassword, pool);
 var findUserByEmail = makeQuery(sqlFindUserByEmail, pool);
 
 //export Google_Application_Credentials
@@ -194,6 +196,38 @@ app.get(API_URI + '/user', auth.required, function(req, res, next){
 
 app.post(API_URI + '/changePassword', (req, res)=>{
     res.status(200).json({});
+})
+
+app.post(API_URI + '/validateReset', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res)=>{
+    console.log(req.body.email, req.body.uuid);
+    findUserByEmail([req.body.email]).then((result)=>{
+        if (result.length > 0) {
+            if(result[0].reset_password == req.body.uuid){
+                return res.json({'salt': result[0].salt});
+            } else {
+                return res.status(404).json({'error': 'error processing'})
+            }
+        }
+    });
+})
+
+app.put(API_URI + '/validatedReset', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res)=>{
+    console.log(req.body.password);
+    let registrationObj = {};
+    let convertSecObj = convertPasswordToHash(req.body.password);
+    registrationObj.password = convertSecObj.hash;
+    registrationObj.salt = convertSecObj.salt;
+    insertUserPassword([
+        registrationObj.password, 
+        req.body.email,
+        req.body.uuid
+    ]).then((results)=>{
+        console.log(results);
+        res.status(200).json({'Success' : 'Password updated!'});
+    }).catch((error)=>{
+        console.log(error);
+        res.status(500).json(error);
+    });
 })
 
 app.post(API_URI + '/resetPassword', (req, res)=>{
