@@ -257,10 +257,6 @@ app.put(API_URI + '/validatedReset', bodyParser.urlencoded({ extended: true}), b
     });
 })
 
-app.post(API_URI + '/resetPassword', (req, res)=>{
-    res.status(200).json({});
-})
-
 app.post(API_URI + '/reqToResetPassword', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
     let user = {...req.body};
     let email = user.email;
