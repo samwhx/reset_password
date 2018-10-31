@@ -45,7 +45,7 @@ var categoriesCollection = db.collection('categories');
 
 
 const sqlInsertUser = "INSERT INTO USER (email, password, fullname, salt) VALUES (?, ?, ?, ?)";
-const sqlInsertUserPassword = "UPDATE USER SET password = ? WHERE (email = ? AND reset_password = ?)";
+const sqlInsertUserPassword = "UPDATE USER SET password = ?, salt = ?, reset_password = NULL WHERE (email = ? AND reset_password = ?)";
 const sqlFindUserByEmail = "SELECT * FROM USER WHERE email = ?";
 const sqlRequestResetPasswordUser = "UPDATE user SET reset_password = ? WHERE email = ?";
 
@@ -231,7 +231,7 @@ app.post(API_URI + '/validateReset', bodyParser.urlencoded({ extended: true}), b
             if(result[0].reset_password == req.body.uuid){
                 return res.json({'salt': result[0].salt});
             } else {
-                return res.status(404).json({'error': 'error processing'})
+                return res.status(404).json({error: 'error processing'})
             }
         }
     });
@@ -245,6 +245,7 @@ app.put(API_URI + '/validatedReset', bodyParser.urlencoded({ extended: true}), b
     registrationObj.salt = convertSecObj.salt;
     insertUserPassword([
         registrationObj.password, 
+        registrationObj.salt, 
         req.body.email,
         req.body.uuid
     ]).then((results)=>{
