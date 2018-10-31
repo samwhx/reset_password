@@ -13,6 +13,7 @@ export class SecurityService {
   private loginRootApiUrl = `/api/login`;
   private resetPasswordRootApiUrl = `/api/resetPassword`;
   private changePasswordRootApiUrl = `/api/changePassword`;
+  private requestToResetPasswordRootApiUrl = `/api/reqToResetPassword`;
 
   private currentUserSubject = new BehaviorSubject<User>({} as User);
   public currentUser = this.currentUserSubject.asObservable().pipe(distinctUntilChanged());
@@ -50,6 +51,10 @@ export class SecurityService {
 
   changePassword(user){
     return this.http.post(this.changePasswordRootApiUrl, user);
+  }
+
+  requestToResetPassword(user){
+    return this.http.post(this.requestToResetPasswordRootApiUrl, user);
   }
 
   resetPassword(user){

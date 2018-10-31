@@ -12,12 +12,17 @@ const express = require('express'),
       passport = require('passport'),
       LocalStrategy = require('passport-local').Strategy,
       auth = require('./auth'),
+      uuidv1 = require('uuid/v1'),
       cors = require('cors');
 
 const app = express();
 
 const API_URI = "/api";
 app.use(cors());
+
+var api_key = '2a20cdaca054584d991124fbc61a9093-c9270c97-2dc41eae';
+var domain = 'sandboxbb40764c667f48c2a24a6b2ebe8e17b9.mailgun.org';
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
 //set GOOGLE_APPLICATION_CREDENTIALS=/Users/phangty/Projects/paf-day26/onfire.json
 // Initialize Firebase
@@ -41,6 +46,7 @@ var categoriesCollection = db.collection('categories');
 
 const sqlInsertUser = "INSERT INTO USER (email, password, fullname, salt) VALUES (?, ?, ?, ?)";
 const sqlFindUserByEmail = "SELECT * FROM USER WHERE email = ?";
+const sqlRequestResetPasswordUser = "UPDATE user SET reset_password = ? WHERE email = ?";
 
 var pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -54,7 +60,7 @@ var pool = mysql.createPool({
 
 var makeQuery = (sql, pool)=>{
     console.log(sql);
-    
+
     return  (args)=>{
         let queryPromsie = new Promise((resolve, reject)=>{
             pool.getConnection((err, connection)=>{
@@ -70,7 +76,7 @@ var makeQuery = (sql, pool)=>{
                         return;
                     }
                     console.log(">>> "+ results);
-                    resolve(results); 
+                    resolve(results);
                 })
             });
         });
@@ -80,6 +86,7 @@ var makeQuery = (sql, pool)=>{
 
 var insertUser = makeQuery(sqlInsertUser, pool);
 var findUserByEmail = makeQuery(sqlFindUserByEmail, pool);
+var reqResetUser = makeQuery(sqlRequestResetPasswordUser, pool);
 
 //export Google_Application_Credentials
 const gStorage = new Storage({
@@ -110,13 +117,13 @@ passport.use(new LocalStrategy({
             return done(null, false, {errors: {'email or password': 'is invalid'}});
         }
     }).catch(done)
-  
+
 }));
 
 function convertPasswordToHash(password){
     salt = crypto.randomBytes(Math.ceil(16/2))
-            .toString('hex') 
-            .slice(0,16); 
+            .toString('hex')
+            .slice(0,16);
     const key = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512');
     console.log("SALT 1> ", salt);
     let hashObj = {
@@ -131,6 +138,25 @@ function isPasswordValid(password, currentHash, salt){
     return key.toString('hex') === currentHash;
 }
 
+exports.sendEmail = (recipient, message, attachment) =>
+  new Promise((resolve, reject) => {
+    const data = {
+      from: 'fullstack@sandboxbb40764c667f48c2a24a6b2ebe8e17b9.mailgun.org',
+      to: recipient,
+      subject: message.subject,
+      text: message.text,
+      inline: attachment,
+      html: message.html,
+    };
+
+    mailgun.messages().send(data, (error) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve();
+    });
+});
+
 app.post(API_URI + '/register', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
     console.log("Post backend register");
     let registerForm = req.body;
@@ -139,9 +165,9 @@ app.post(API_URI + '/register', bodyParser.urlencoded({ extended: true}), bodyPa
     let convertSecObj = convertPasswordToHash(registrationObj.password);
     registrationObj.password = convertSecObj.hash;
     registrationObj.salt = convertSecObj.salt;
-    
-    insertUser([registrationObj.email, 
-        registrationObj.password, 
+
+    insertUser([registrationObj.email,
+        registrationObj.password,
         registrationObj.fullName,
         registrationObj.salt]).then((results)=>{
         console.log(results);
@@ -160,11 +186,11 @@ app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParse
     if(!email){
         return res.status(422).json({errors: {email: "can't be blank"}});
       }
-    
+
       if(!password){
         return res.status(422).json({errors: {password: "can't be blank"}});
       }
-    
+
     passport.authenticate('local', {session: false}, function(err, user, info){
         if(err){ return next(err); }
         var today = new Date();
@@ -175,7 +201,7 @@ app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParse
             username: user.email,
             exp: parseInt(exp.getTime() / 1000),
         }, process.env.JWT_SECRET);
-        
+
         if(user){
         //  console.log("JWT token > ", token);
           user.token = token;
@@ -184,7 +210,7 @@ app.post(API_URI + '/login', bodyParser.urlencoded({ extended: true}), bodyParse
           return res.status(422).json(info);
         }
       })(req, res, next);
-    
+
 })
 
 app.get(API_URI + '/user', auth.required, function(req, res, next){
@@ -198,6 +224,40 @@ app.post(API_URI + '/changePassword', (req, res)=>{
 
 app.post(API_URI + '/resetPassword', (req, res)=>{
     res.status(200).json({});
+})
+
+app.post(API_URI + '/reqToResetPassword', bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res)=>{
+    let user = {...req.body};
+    let email = user.email;
+    console.log(email);
+
+    let userUUID = uuidv1();
+    console.log (userUUID);
+
+    findUserByEmail([email]).then((result)=>{
+        if(result.length > 0){
+            reqResetUser([userUUID, user.email]).then((results)=>{
+                //send email here
+                let emailMessage = "localhost:4200/ValidateAndReset?Email="+email+"&UUID="+userUUID;
+                console.log(emailMessage);
+                var data = {
+                    from: 'fullstack@sandboxbb40764c667f48c2a24a6b2ebe8e17b9.mailgun.org',
+                    to: email,
+                    subject: 'Password reset request for NgxBlog',
+                    text: emailMessage
+                };
+                mailgun.messages().send(data, function (error, body) {
+                    console.log(body);
+                });
+                res.status(200);
+            }).catch((error)=>{
+                console.log(error);
+                res.status(500).json(error);
+            });
+        }else{
+            res.status(500).json({error: "Email not valid."});
+        }
+    })
 })
 
 /////////////////////////// READ ///////////////////////////////////////////
@@ -214,14 +274,14 @@ app.get(API_URI + '/authors', auth.required, (req, res) => {
                 id: doc.id,
                 result: doc.data()
             }
-            authorsArr.push(returnResult);       
+            authorsArr.push(returnResult);
     });
     res.status(200).json(authorsArr);
    })
    .catch(err => {
      console.log('Error getting documents', err);
      res.status(500).json(err);
-  }); 
+  });
 });
 
 // Search by firstname & lastname
@@ -230,7 +290,7 @@ app.get(API_URI + '/author', auth.required, (req, res) => {
     let lastname = req.query.lastname;
     console.log(firstname, lastname);
 
-    if (typeof(firstname === 'undefined') 
+    if (typeof(firstname === 'undefined')
         && typeof(lastname === 'undefined')){
         if (firstname === ''
         && lastname === ''){
@@ -245,7 +305,7 @@ app.get(API_URI + '/author', auth.required, (req, res) => {
     .get()
     .then((result) => {
         let authorData = []
-    
+
         authorData = result.docs.map(value => {
             return value.data();
         });
@@ -264,7 +324,7 @@ app.get(API_URI + '/author', auth.required, (req, res) => {
  */
 app.get(API_URI + '/authors/:id', auth.required,(req, res) => {
     let idValue = req.params.id;
-    
+
     authorsCollection.
         doc(idValue)
     .get()
@@ -314,7 +374,7 @@ app.get(API_URI + '/articles', (req, res) => {
    .catch(err => {
         console.log('Error getting documents', err);
         res.status(500).json(err);
-  }); 
+  });
 });
 
 // GET one article by title
@@ -344,7 +404,7 @@ app.get(API_URI + '/article', auth.required,(req, res) => {
 
 ///////////////// CREATE //////////////////////////////
   // Add one author
-app.post(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res) => { 
+app.post(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "10MB" }), (req, res) => {
     let author = { ...req.body };
     console.log(".....author" + JSON.stringify(author));
     authorsCollection
@@ -353,7 +413,7 @@ app.post(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: 
         .catch(error => res.status(500).json(error));
 })
 
-// Add one article 
+// Add one article
 app.post(API_URI + '/articles', auth.required, bodyParser.urlencoded({ extended: true}), bodyParser.json({ limit: "50MB" }), (req, res) => {
     let article = {... req.body };
     console.log(".....articles" + JSON.stringify(article));
@@ -383,14 +443,14 @@ app.get(API_URI + '/categories', auth.required,(req, res) => {
                 id: doc.id,
                 result: doc.data()
             }
-            categoriesArr.push(returnResult);       
+            categoriesArr.push(returnResult);
     });
     res.status(200).json(categoriesArr);
    })
    .catch(err => {
      console.log('Error getting documents', err);
      res.status(500).json(err);
-  }); 
+  });
 });
 
 
@@ -402,7 +462,7 @@ app.put(API_URI + '/categories', auth.required, bodyParser.urlencoded({ extended
     categoriesCollection.doc(idValue).update(
         category,
         { merge: true });
-        console.log(category) 
+        console.log(category)
     res.status(200).json(category);
 });
 
@@ -418,7 +478,7 @@ app.put(API_URI + '/authors', auth.required, bodyParser.urlencoded({ extended: t
     authorsCollection.doc(idValue).update(
         author,
         { merge: true });
-        console.log(author) 
+        console.log(author)
     res.status(200).json(author);
 });
 
@@ -462,7 +522,7 @@ const uploadToFirebaseStorage = (fileObject) => {
         let idValue =  uuidv4();
         let newFilename = `${idValue}_${fileObject.originalname}`
         let firebaseFileUpload = bucket.file(newFilename);
-        
+
         const blobStream = firebaseFileUpload.createWriteStream({
             metadata: {
                 contentType: fileObject.mimeType
